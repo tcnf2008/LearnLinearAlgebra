@@ -1,0 +1,1467 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>07. 正交、投影与最小二乘</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --grid: #d8deea;
+      --axis: #6f7b91;
+      --border: #d8deea;
+      --code: #243047;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --cyan: #0891b2;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --red-soft: rgba(225, 29, 72, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #bfdbfe;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .canvas-wrap,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: calc(100% - 32px);
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 16px;
+    }
+
+    .control-section + .control-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .controls h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
+    }
+
+    button {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f5fa;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .status-card,
+    .readout,
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-card {
+      font-family: inherit;
+    }
+
+    .status-card p {
+      margin: 0;
+    }
+
+    .status-card p + p {
+      margin-top: 6px;
+    }
+
+    .status-title {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #eef2f7;
+      border-radius: 5px;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      margin: 12px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    details {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .exercise-block {
+      margin-top: 16px;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-left: 4px solid var(--violet);
+      background: #f5f3ff;
+      border-radius: 8px;
+      color: #35245f;
+    }
+
+    .callout p {
+      color: #4c3b75;
+    }
+
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .concept-grid,
+      .learning-path,
+      .focus-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .canvas-wrap {
+        min-height: 520px;
+      }
+
+      canvas {
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .legend {
+        position: static;
+        border-width: 1px 0 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>07. 正交、投影与最小二乘</h1>
+      <p class="lead">本页把 dot product、orthogonality、projection 和 least squares 连成一条线：点积衡量方向关系，正交表示没有同向分量，投影给出最近近似，最小二乘就是把不可解的问题投影到可解空间上。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">少量练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>当目标不能被精确表示时，怎样找到最接近的可表示结果？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>点积：</strong><code>u·v</code> 衡量两个向量在同一方向上的重合程度。</li>
+        <li><strong>正交：</strong><code>u·v=0</code> 表示两个方向互不贡献，是线性代数里的“垂直”。</li>
+        <li><strong>投影：</strong>把 <code>v</code> 投到一条线或一个子空间上，得到最近的可表示向量。</li>
+        <li><strong>残差：</strong><code>v-proj(v)</code> 是没法用目标子空间表达的部分，它和子空间正交。</li>
+        <li><strong>最小二乘：</strong>当 <code>Ax=b</code> 无解时，改求最接近 <code>b</code> 的 <code>Ax</code>。</li>
+        <li><strong>正规方程：</strong>最优残差必须垂直于 column space，所以 <code>A^T(Ax-b)=0</code>。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：最近近似来自正交残差</h2>
+      <p>前两个模式拖动蓝色方向 <code>u</code> 和橙色向量 <code>v</code>；后两个模式拖动散点，观察最小二乘拟合线和残差。绿色表示最佳近似，紫色表示正交残差。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-dot" aria-current="page" data-mode="dot">1 点积与正交</a>
+        <a class="mode-tab" href="#mode-projection" data-mode="projection">2 投影</a>
+        <a class="mode-tab" href="#mode-least" data-mode="least">3 最小二乘</a>
+        <a class="mode-tab" href="#mode-normal" data-mode="normal">4 正规方程</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
+
+      <div class="workspace">
+        <div class="canvas-wrap" aria-label="正交、投影和最小二乘交互画布">
+          <canvas id="scene" width="820" height="620"></canvas>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--grid);"></i>坐标网格</span>
+            <span><i class="swatch" style="background: var(--blue);"></i>方向 u</span>
+            <span><i class="swatch" style="background: var(--amber);"></i>向量 v / 数据点</span>
+            <span><i class="swatch" style="background: var(--green);"></i>投影 / 最佳拟合</span>
+            <span><i class="swatch" style="background: var(--violet);"></i>正交残差</span>
+            <span><i class="swatch" style="background: var(--red);"></i>比较线</span>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle"></p>
+              <p id="statusDetail"></p>
+              <p id="errorDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>向量 u 和 v</h3>
+            <label>
+              <span>u.x = <strong class="value" id="uXValue">2.00</strong></span>
+              <input id="uXSlider" type="range" min="-4" max="4" step="0.05" value="2">
+            </label>
+            <label>
+              <span>u.y = <strong class="value" id="uYValue">1.00</strong></span>
+              <input id="uYSlider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+            <label>
+              <span>v.x = <strong class="value" id="vXValue">1.00</strong></span>
+              <input id="vXSlider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+            <label>
+              <span>v.y = <strong class="value" id="vYValue">3.00</strong></span>
+              <input id="vYSlider" type="range" min="-4" max="4" step="0.05" value="3">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>比较拟合线</h3>
+            <label>
+              <span>m = <strong class="value" id="mValue">0.50</strong></span>
+              <input id="mSlider" type="range" min="-2.5" max="2.5" step="0.05" value="0.5">
+            </label>
+            <label>
+              <span>c = <strong class="value" id="cValue">0.20</strong></span>
+              <input id="cSlider" type="range" min="-4" max="4" step="0.05" value="0.2">
+            </label>
+            <button id="useBestButton" type="button">使用最小二乘直线</button>
+            <p class="mini-note">红线是你手动设置的比较线；绿色线是最小二乘自动算出的最佳线。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>典型预设</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="orthogonal">向量正交</button>
+              <button type="button" data-preset="acute">向量锐角</button>
+              <button type="button" data-preset="noisy">线性数据</button>
+              <button type="button" data-preset="outlier">带离群点</button>
+              <button type="button" data-preset="flat">近似水平</button>
+              <button type="button" data-preset="vertical">x 几乎相同</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>当前计算</h3>
+            <div class="readout" id="readout"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 点积是什么</h3>
+          <p>点积把两个向量变成一个数，用来衡量它们方向上的重合程度。</p>
+          <pre>u·v = u1*v1 + u2*v2
+u·v = |u||v|cos(theta)</pre>
+          <p>如果夹角小，点积为正；如果夹角大于 <code>90°</code>，点积为负；如果正好垂直，点积为 0。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 正交为什么重要</h3>
+          <p>正交意味着“没有沿对方方向的分量”。这比几何里的垂直更有用，因为它可以扩展到高维空间。</p>
+          <pre class="formula">u·v = 0</pre>
+          <p>在线性代数中，很多“最优近似”条件最终都会变成某个残差和某个子空间正交。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 投影是最近点</h3>
+          <p>把 <code>v</code> 投影到由 <code>u</code> 张成的直线上，得到这条线上离 <code>v</code> 最近的点：</p>
+          <pre>proj_u(v) = (v·u / u·u) u</pre>
+          <p>投影后剩下的残差 <code>v-proj_u(v)</code> 与 <code>u</code> 正交。这就是“最近”的几何原因。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 最小二乘解决什么问题</h3>
+          <p>现实中经常出现方程太多、未知量太少的情况，<code>Ax=b</code> 通常无解。least squares 不要求精确等于 <code>b</code>，而是找最接近 <code>b</code> 的 <code>Ax</code>。</p>
+          <pre class="formula">minimize ||Ax - b||^2</pre>
+          <p>拟合直线就是典型例子：用两个参数 <code>m,c</code> 尽量解释多组数据点。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. 正规方程从哪里来</h3>
+          <p>最优近似 <code>Ax_hat</code> 是 <code>b</code> 在 <code>Col(A)</code> 上的投影。残差 <code>r=b-Ax_hat</code> 必须垂直于 <code>Col(A)</code> 的每一列：</p>
+          <pre>A^T(b - Ax_hat) = 0
+A^T A x_hat = A^T b</pre>
+          <p>这不是魔法公式，而是“残差与可表示方向正交”的代数写法。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 常见混淆</h3>
+          <ul>
+            <li>投影不是随便找一个看起来近的点，而是让残差正交。</li>
+            <li>最小二乘最小化的是残差平方和，不是每个点的误差都一样小。</li>
+            <li>正规方程可能放大数值误差；真实工程中常用 QR 或 SVD 求解，但本章先建立几何直觉。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>本章最重要的一句话：最好的线性近似不是让残差消失，而是让残差垂直于所有可调方向。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>少量练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么 <code>u·v=0</code> 可以理解成“<code>v</code> 没有沿 <code>u</code> 的分量”？</li>
+          <li>为什么投影点是直线上离原向量最近的点？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>设 <code>u=[2,0]</code>，<code>v=[3,4]</code>，计算 <code>proj_u(v)</code> 和残差。</li>
+          <li>已知三点 <code>(0,1),(1,2),(2,2)</code>，试着说明为什么最佳拟合线的残差和常数列 <code>[1,1,1]</code> 点积应为 0。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>切到“2 投影”，拖动 <code>v</code>，观察残差是否始终垂直于蓝色方向线。</li>
+          <li>切到“3 最小二乘”，拖动一个数据点，比较绿色最佳线和红色手动线的误差平方和。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>如果所有数据点的 <code>x</code> 几乎相同，为什么用 <code>y=mx+c</code> 做最小二乘会变得不稳定？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>因为 <code>u·v=|u||v|cos(theta)</code>，垂直时 <code>cos(theta)=0</code>，沿 <code>u</code> 的投影长度为 0。</li>
+          <li>直线上的任意候选点和投影点相差一个沿直线的向量；残差与这条线正交，所以由勾股关系可知其他候选点距离更远。</li>
+          <li><code>proj_u(v)=(v·u/u·u)u=(6/4)[2,0]=[3,0]</code>，残差是 <code>[0,4]</code>。</li>
+          <li>常数列是模型矩阵的一列；最优残差必须和模型矩阵每一列正交，所以残差和 <code>[1,1,1]</code> 的点积为 0，也就是残差和为 0。</li>
+          <li>当所有 <code>x</code> 几乎相同，斜率方向提供的信息很弱，很多斜率都能给出接近的误差，解对微小扰动很敏感。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“点积 -> 正交 -> 投影 -> 最小二乘 -> 正规方程”的顺序，让最小二乘自然成为投影思想的延伸。</p>
+      <ul class="source-list">
+        <li>概念校准：投影矩阵、最小二乘和正规方程，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/lecture-16-projection-matrices-and-least-squares-1/">MIT OCW: Projection Matrices and Least Squares</a>。</li>
+        <li>直觉线索：用点积理解投影和方向关系，参考 <a href="https://www.3blue1brown.com/lessons/dot-products">3Blue1Brown: Dot products and duality</a>。</li>
+        <li>练习组织：从正交投影过渡到 least squares，参考 <a href="https://www.khanacademy.org/math/linear-algebra/alternate-bases/orthogonal-projections">Khan Academy: Orthogonal projections</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const sliders = {
+      uX: document.getElementById("uXSlider"),
+      uY: document.getElementById("uYSlider"),
+      vX: document.getElementById("vXSlider"),
+      vY: document.getElementById("vYSlider"),
+      m: document.getElementById("mSlider"),
+      c: document.getElementById("cSlider")
+    };
+
+    const values = {
+      uX: document.getElementById("uXValue"),
+      uY: document.getElementById("uYValue"),
+      vX: document.getElementById("vXValue"),
+      vY: document.getElementById("vYValue"),
+      m: document.getElementById("mValue"),
+      c: document.getElementById("cValue")
+    };
+
+    const readout = document.getElementById("readout");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusDetail = document.getElementById("statusDetail");
+    const errorDetail = document.getElementById("errorDetail");
+    const modeGuide = document.getElementById("modeGuide");
+    const useBestButton = document.getElementById("useBestButton");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const presetButtons = document.querySelectorAll("[data-preset]");
+
+    const EPS = 0.0001;
+    const state = {
+      u: { x: 2, y: 1 },
+      v: { x: 1, y: 3 },
+      manual: { m: 0.5, c: 0.2 },
+      points: [
+        { x: -3, y: -1.2 },
+        { x: -1.5, y: 0.1 },
+        { x: 0, y: 0.6 },
+        { x: 1.4, y: 1.8 },
+        { x: 3, y: 2.9 }
+      ],
+      mode: "dot",
+      dragTarget: null,
+      scale: 54
+    };
+
+    const presets = {
+      orthogonal: {
+        u: { x: 2, y: 1 },
+        v: { x: -1, y: 2 }
+      },
+      acute: {
+        u: { x: 2, y: 1 },
+        v: { x: 2.2, y: 2.1 }
+      },
+      noisy: {
+        points: [
+          { x: -3, y: -1.2 },
+          { x: -1.5, y: 0.1 },
+          { x: 0, y: 0.6 },
+          { x: 1.4, y: 1.8 },
+          { x: 3, y: 2.9 }
+        ]
+      },
+      outlier: {
+        points: [
+          { x: -3, y: -1.1 },
+          { x: -1.2, y: -0.1 },
+          { x: 0.2, y: 0.5 },
+          { x: 1.6, y: 1.4 },
+          { x: 3.1, y: 4.2 }
+        ]
+      },
+      flat: {
+        points: [
+          { x: -3.2, y: 1.1 },
+          { x: -1.6, y: 0.8 },
+          { x: 0, y: 1.0 },
+          { x: 1.8, y: 1.2 },
+          { x: 3.2, y: 0.9 }
+        ]
+      },
+      vertical: {
+        points: [
+          { x: 0.05, y: -2.5 },
+          { x: -0.1, y: -1.2 },
+          { x: 0.1, y: 0.2 },
+          { x: -0.05, y: 1.4 },
+          { x: 0.08, y: 2.6 }
+        ]
+      }
+    };
+
+    const modeGuides = {
+      dot: {
+        title: "第 1 步：用点积看方向关系",
+        body: "点积为正表示夹角小于 90°，为负表示夹角大于 90°，为 0 表示正交。",
+        task: "任务：点击“向量正交”，再拖动 v，观察点积如何从 0 变正或变负。"
+      },
+      projection: {
+        title: "第 2 步：投影是最近近似",
+        body: "绿色 proj_u(v) 是 v 在蓝色方向线上的最近点；紫色残差与蓝色方向正交。",
+        task: "任务：拖动 v，观察残差始终垂直于 u 所在直线。"
+      },
+      least: {
+        title: "第 3 步：用最小二乘拟合直线",
+        body: "绿色线自动最小化竖直残差平方和。红线是手动比较线，可以看到偏离最佳线时误差会变大。",
+        task: "任务：拖动一个数据点，观察最佳线如何重新平衡所有残差。"
+      },
+      normal: {
+        title: "第 4 步：正规方程是正交条件",
+        body: "最佳线的残差向量 e 同时垂直于常数列 [1,1,...] 和 x 列，因此 sum(e)=0 且 sum(xe)=0。",
+        task: "任务：在带离群点数据上观察残差不会全部很小，但正交条件仍然成立。"
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function origin() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function toScreen(vector) {
+      const o = origin();
+      return {
+        x: o.x + vector.x * state.scale,
+        y: o.y - vector.y * state.scale
+      };
+    }
+
+    function toWorld(point) {
+      const o = origin();
+      return {
+        x: (point.x - o.x) / state.scale,
+        y: (o.y - point.y) / state.scale
+      };
+    }
+
+    function pointerPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function dot(u, v) {
+      return u.x * v.x + u.y * v.y;
+    }
+
+    function add(u, v) {
+      return { x: u.x + v.x, y: u.y + v.y };
+    }
+
+    function sub(u, v) {
+      return { x: u.x - v.x, y: u.y - v.y };
+    }
+
+    function scaleVector(k, v) {
+      return { x: k * v.x, y: k * v.y };
+    }
+
+    function norm(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function normalize(v) {
+      const length = norm(v);
+      return length < EPS ? { x: 0, y: 0 } : { x: v.x / length, y: v.y / length };
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function projectionInfo() {
+      const denom = dot(state.u, state.u);
+      if (denom < EPS) {
+        return {
+          valid: false,
+          coefficient: 0,
+          projection: { x: 0, y: 0 },
+          residual: { x: state.v.x, y: state.v.y }
+        };
+      }
+      const coefficient = dot(state.v, state.u) / denom;
+      const projection = scaleVector(coefficient, state.u);
+      return {
+        valid: true,
+        coefficient,
+        projection,
+        residual: sub(state.v, projection)
+      };
+    }
+
+    function angleBetween(u, v) {
+      const product = norm(u) * norm(v);
+      if (product < EPS) {
+        return 0;
+      }
+      const ratio = clamp(dot(u, v) / product, -1, 1);
+      return Math.acos(ratio) * 180 / Math.PI;
+    }
+
+    function leastSquares(points) {
+      const n = points.length;
+      const sumX = points.reduce((total, p) => total + p.x, 0);
+      const sumY = points.reduce((total, p) => total + p.y, 0);
+      const sumXX = points.reduce((total, p) => total + p.x * p.x, 0);
+      const sumXY = points.reduce((total, p) => total + p.x * p.y, 0);
+      const denom = n * sumXX - sumX * sumX;
+      if (Math.abs(denom) < EPS) {
+        const meanY = sumY / n;
+        return { valid: false, m: 0, c: meanY, sse: sseForLine(0, meanY, points), residuals: residualsForLine(0, meanY, points), denom };
+      }
+      const m = (n * sumXY - sumX * sumY) / denom;
+      const c = (sumY - m * sumX) / n;
+      return { valid: true, m, c, sse: sseForLine(m, c, points), residuals: residualsForLine(m, c, points), denom };
+    }
+
+    function residualsForLine(m, c, points) {
+      return points.map((point) => point.y - (m * point.x + c));
+    }
+
+    function sseForLine(m, c, points) {
+      return residualsForLine(m, c, points).reduce((total, residual) => total + residual * residual, 0);
+    }
+
+    function normalSums(fit) {
+      const residuals = fit.residuals;
+      return {
+        sumResidual: residuals.reduce((total, r) => total + r, 0),
+        sumXResidual: residuals.reduce((total, r, index) => total + state.points[index].x * r, 0)
+      };
+    }
+
+    function drawBaseGrid() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const o = origin();
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = getCss("--grid");
+
+      for (let x = o.x % state.scale; x <= width; x += state.scale) {
+        lineScreen({ x, y: 0 }, { x, y: height });
+      }
+      for (let y = o.y % state.scale; y <= height; y += state.scale) {
+        lineScreen({ x: 0, y }, { x: width, y });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.5;
+      lineScreen({ x: 0, y: o.y }, { x: width, y: o.y });
+      lineScreen({ x: o.x, y: 0 }, { x: o.x, y: height });
+
+      ctx.fillStyle = getCss("--axis");
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      for (let i = -6; i <= 6; i += 1) {
+        if (i !== 0) {
+          const xPoint = toScreen({ x: i, y: 0 });
+          const yPoint = toScreen({ x: 0, y: i });
+          ctx.fillText(String(i), xPoint.x - 4, o.y + 16);
+          ctx.fillText(String(i), o.x + 8, yPoint.y + 4);
+        }
+      }
+    }
+
+    function drawVectorModes() {
+      const proj = projectionInfo();
+      drawLineThrough(state.u, getCss("--blue"), "span(u)", 2.4);
+      drawVector(state.u, getCss("--blue"), "u", 3.5);
+      drawVector(state.v, getCss("--amber"), "v", 3.5);
+
+      if (state.mode === "dot") {
+        drawAngleArc(state.u, state.v);
+        drawOrthogonalHint();
+      } else {
+        drawVector(proj.projection, getCss("--green"), "proj", 4);
+        drawVector(proj.residual, getCss("--violet"), "residual", 3, proj.projection, true);
+        drawRightAngleMarker(proj.projection, state.u, proj.residual);
+      }
+    }
+
+    function drawLeastSquaresMode(showNormal) {
+      const fit = leastSquares(state.points);
+      const manualSse = sseForLine(state.manual.m, state.manual.c, state.points);
+
+      drawLine(state.manual.m, state.manual.c, getCss("--red"), "比较线", 2.4, true);
+      drawLine(fit.m, fit.c, getCss("--green"), "最小二乘线", 3.4, false);
+      drawResiduals(fit, showNormal ? getCss("--violet") : getCss("--green"));
+      drawPoints();
+
+      if (showNormal) {
+        drawNormalSummary(fit);
+      } else {
+        drawLabel(`SSE(best)=${fmt(fit.sse)}  SSE(red)=${fmt(manualSse)}`, 22, 34, getCss("--green"));
+      }
+    }
+
+    function drawPoints() {
+      state.points.forEach((point, index) => {
+        const screen = toScreen(point);
+        ctx.save();
+        ctx.fillStyle = getCss("--amber");
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        drawLabel(`p${index + 1}`, screen.x + 9, screen.y - 9, getCss("--amber"));
+        ctx.restore();
+      });
+    }
+
+    function drawResiduals(fit, color) {
+      state.points.forEach((point) => {
+        const fitted = { x: point.x, y: fit.m * point.x + fit.c };
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        lineScreen(toScreen(point), toScreen(fitted));
+        ctx.setLineDash([]);
+        ctx.restore();
+      });
+    }
+
+    function drawNormalSummary(fit) {
+      const sums = normalSums(fit);
+      const left = -5.3;
+      const top = 4.3;
+      drawLabel(`sum(e)=${fmt(sums.sumResidual)}`, toScreen({ x: left, y: top }).x, toScreen({ x: left, y: top }).y, getCss("--violet"));
+      drawLabel(`sum(xe)=${fmt(sums.sumXResidual)}`, toScreen({ x: left, y: top - 0.55 }).x, toScreen({ x: left, y: top - 0.55 }).y, getCss("--violet"));
+      drawLabel("残差与 A 的两列正交", toScreen({ x: left, y: top - 1.1 }).x, toScreen({ x: left, y: top - 1.1 }).y, getCss("--violet"));
+    }
+
+    function drawLine(m, c, color, label, width, dashed) {
+      const x1 = -7;
+      const x2 = 7;
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([7, 7]);
+      }
+      lineScreen(toScreen({ x: x1, y: m * x1 + c }), toScreen({ x: x2, y: m * x2 + c }));
+      ctx.setLineDash([]);
+      drawLabel(label, toScreen({ x: 3.4, y: m * 3.4 + c }).x + 8, toScreen({ x: 3.4, y: m * 3.4 + c }).y - 8, color);
+      ctx.restore();
+    }
+
+    function drawAngleArc(u, v) {
+      if (norm(u) < EPS || norm(v) < EPS) {
+        return;
+      }
+      const o = origin();
+      const angleU = -Math.atan2(u.y, u.x);
+      const angleV = -Math.atan2(v.y, v.x);
+      ctx.save();
+      ctx.strokeStyle = getCss("--violet");
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, 52, angleU, angleV, angleV < angleU);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      drawLabel(`${fmt(angleBetween(u, v))}°`, o.x + 58, o.y - 44, getCss("--violet"));
+      ctx.restore();
+    }
+
+    function drawOrthogonalHint() {
+      const product = dot(state.u, state.v);
+      if (Math.abs(product) < 0.08 && norm(state.u) > EPS && norm(state.v) > EPS) {
+        drawLabel("u·v≈0，方向正交", 22, 34, getCss("--green"));
+      }
+    }
+
+    function drawRightAngleMarker(originPoint, along, residual) {
+      const a = normalize(along);
+      const r = normalize(residual);
+      if (norm(a) < EPS || norm(r) < EPS) {
+        return;
+      }
+      const size = 0.28;
+      const p1 = add(originPoint, scaleVector(size, a));
+      const p2 = add(p1, scaleVector(size, r));
+      const p3 = add(originPoint, scaleVector(size, r));
+      ctx.save();
+      ctx.strokeStyle = getCss("--violet");
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(toScreen(p1).x, toScreen(p1).y);
+      ctx.lineTo(toScreen(p2).x, toScreen(p2).y);
+      ctx.lineTo(toScreen(p3).x, toScreen(p3).y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawLineThrough(direction, color, label, width = 2.5) {
+      const unit = normalize(direction);
+      if (norm(unit) < EPS) {
+        return;
+      }
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash([9, 7]);
+      lineScreen(toScreen(scaleVector(-8, unit)), toScreen(scaleVector(8, unit)));
+      ctx.setLineDash([]);
+      const labelPoint = toScreen(scaleVector(2.2, unit));
+      drawLabel(label, labelPoint.x + 8, labelPoint.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(label, end.x + 8, end.y - 8, color);
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      drawLabel(label, end.x + 8, end.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawLabel(text, x, y, color) {
+      ctx.save();
+      ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+      const metrics = ctx.measureText(text);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(x - 3, y - 14, metrics.width + 6, 18);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBaseGrid();
+      if (state.mode === "dot" || state.mode === "projection") {
+        drawVectorModes();
+      } else {
+        drawLeastSquaresMode(state.mode === "normal");
+      }
+      updateUi();
+    }
+
+    function updateUi() {
+      syncControls();
+      renderModeGuide();
+      updateStatus();
+      updateReadout();
+    }
+
+    function syncControls() {
+      sliders.uX.value = String(state.u.x);
+      sliders.uY.value = String(state.u.y);
+      sliders.vX.value = String(state.v.x);
+      sliders.vY.value = String(state.v.y);
+      sliders.m.value = String(state.manual.m);
+      sliders.c.value = String(state.manual.c);
+      values.uX.textContent = fmt(state.u.x);
+      values.uY.textContent = fmt(state.u.y);
+      values.vX.textContent = fmt(state.v.x);
+      values.vY.textContent = fmt(state.v.y);
+      values.m.textContent = fmt(state.manual.m);
+      values.c.textContent = fmt(state.manual.c);
+
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === state.mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus() {
+      const product = dot(state.u, state.v);
+      const proj = projectionInfo();
+      const fit = leastSquares(state.points);
+      const manualSse = sseForLine(state.manual.m, state.manual.c, state.points);
+      const sums = normalSums(fit);
+
+      if (state.mode === "dot") {
+        statusTitle.textContent = Math.abs(product) < 0.08 ? "当前 u 和 v 近似正交" : "当前 u 和 v 不正交";
+        statusDetail.textContent = `u·v=${fmt(product)}，夹角约 ${fmt(angleBetween(state.u, state.v))}°。`;
+        errorDetail.textContent = product > 0 ? "点积为正：方向大致同向。" : product < 0 ? "点积为负：方向大致相反。" : "点积为 0：没有同向分量。";
+      } else if (state.mode === "projection") {
+        statusTitle.textContent = "投影给出线上最近点";
+        statusDetail.textContent = proj.valid
+          ? `proj_u(v)=[${fmt(proj.projection.x)}, ${fmt(proj.projection.y)}]，系数 ${fmt(proj.coefficient)}。`
+          : "u 接近零向量，无法定义投影方向。";
+        errorDetail.textContent = `残差长度 ${fmt(norm(proj.residual))}，residual·u=${fmt(dot(proj.residual, state.u))}。`;
+      } else if (state.mode === "least") {
+        statusTitle.textContent = fit.valid ? "绿色线是最小二乘最佳线" : "x 信息太少，斜率不稳定";
+        statusDetail.textContent = fit.valid
+          ? `最佳线 y=${fmt(fit.m)}x+${fmt(fit.c)}，SSE=${fmt(fit.sse)}。`
+          : "所有 x 几乎相同，用 y=mx+c 拟合会病态。";
+        errorDetail.textContent = `红线 SSE=${fmt(manualSse)}。`;
+      } else {
+        statusTitle.textContent = "最佳残差与模型空间正交";
+        statusDetail.textContent = `sum(e)=${fmt(sums.sumResidual)}，sum(xe)=${fmt(sums.sumXResidual)}。`;
+        errorDetail.textContent = "这就是 A^T(Ax-b)=0 的几何含义。";
+      }
+    }
+
+    function updateReadout() {
+      const proj = projectionInfo();
+      const fit = leastSquares(state.points);
+      const manualSse = sseForLine(state.manual.m, state.manual.c, state.points);
+      const sums = normalSums(fit);
+      const lines = [
+        `u = [${fmt(state.u.x)}, ${fmt(state.u.y)}]`,
+        `v = [${fmt(state.v.x)}, ${fmt(state.v.y)}]`,
+        `u·v = ${fmt(dot(state.u, state.v))}`,
+        `angle = ${fmt(angleBetween(state.u, state.v))}°`,
+        `proj_u(v) = [${fmt(proj.projection.x)}, ${fmt(proj.projection.y)}]`,
+        `residual = [${fmt(proj.residual.x)}, ${fmt(proj.residual.y)}]`,
+        `residual·u = ${fmt(dot(proj.residual, state.u))}`,
+        "",
+        `least squares line: y=${fmt(fit.m)}x+${fmt(fit.c)}`,
+        `SSE(best) = ${fmt(fit.sse)}`,
+        `SSE(red) = ${fmt(manualSse)}`,
+        `sum(e) = ${fmt(sums.sumResidual)}`,
+        `sum(xe) = ${fmt(sums.sumXResidual)}`
+      ];
+      readout.innerHTML = lines.join("<br>");
+    }
+
+    function activateMode(mode) {
+      state.mode = mode;
+      draw();
+    }
+
+    function bindSlider(name, update) {
+      ["input", "change"].forEach((eventName) => {
+        sliders[name].addEventListener(eventName, () => {
+          update(Number(sliders[name].value));
+          draw();
+        });
+      });
+    }
+
+    bindSlider("uX", (value) => {
+      state.u.x = value;
+    });
+    bindSlider("uY", (value) => {
+      state.u.y = value;
+    });
+    bindSlider("vX", (value) => {
+      state.v.x = value;
+    });
+    bindSlider("vY", (value) => {
+      state.v.y = value;
+    });
+    bindSlider("m", (value) => {
+      state.manual.m = value;
+    });
+    bindSlider("c", (value) => {
+      state.manual.c = value;
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const preset = presets[button.dataset.preset];
+        if (preset.u) {
+          state.u = { ...preset.u };
+          state.v = { ...preset.v };
+          state.mode = "dot";
+        }
+        if (preset.points) {
+          state.points = preset.points.map((point) => ({ ...point }));
+          const fit = leastSquares(state.points);
+          state.manual = { m: fit.m + 0.35, c: fit.c - 0.35 };
+          state.mode = "least";
+        }
+        draw();
+      });
+    });
+
+    useBestButton.addEventListener("click", () => {
+      const fit = leastSquares(state.points);
+      state.manual = { m: fit.m, c: fit.c };
+      draw();
+    });
+
+    function nearestDragTarget(point) {
+      if (state.mode === "dot" || state.mode === "projection") {
+        const candidates = [
+          { name: "u", distance: distance(point, toScreen(state.u)) },
+          { name: "v", distance: distance(point, toScreen(state.v)) }
+        ];
+        candidates.sort((left, right) => left.distance - right.distance);
+        return candidates[0].distance < 24 ? candidates[0].name : null;
+      }
+
+      const candidates = state.points.map((dataPoint, index) => ({
+        name: `point-${index}`,
+        distance: distance(point, toScreen(dataPoint))
+      }));
+      candidates.sort((left, right) => left.distance - right.distance);
+      return candidates[0].distance < 24 ? candidates[0].name : null;
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const target = nearestDragTarget(pointerPoint(event));
+      if (target) {
+        state.dragTarget = target;
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.dragTarget) {
+        return;
+      }
+
+      const world = toWorld(pointerPoint(event));
+      const next = {
+        x: clamp(world.x, -5.5, 5.5),
+        y: clamp(world.y, -4.8, 4.8)
+      };
+
+      if (state.dragTarget === "u") {
+        state.u = { x: clamp(next.x, -4, 4), y: clamp(next.y, -4, 4) };
+      } else if (state.dragTarget === "v") {
+        state.v = { x: clamp(next.x, -4, 4), y: clamp(next.y, -4, 4) };
+      } else {
+        const index = Number(state.dragTarget.split("-")[1]);
+        state.points[index] = next;
+      }
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      state.dragTarget = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      state.dragTarget = null;
+    });
+
+    function getCss(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmt(value) {
+      const fixed = Number(value).toFixed(2);
+      return fixed === "-0.00" ? "0.00" : fixed;
+    }
+
+    function distance(p, q) {
+      return Math.hypot(p.x - q.x, p.y - q.y);
+    }
+
+    function lineScreen(start, end) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>05. 行列式</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --grid: #d8deea;
+      --axis: #6f7b91;
+      --border: #d8deea;
+      --code: #243047;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --cyan: #0891b2;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --red-soft: rgba(225, 29, 72, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #bfdbfe;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .canvas-wrap,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: calc(100% - 32px);
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 16px;
+    }
+
+    .control-section + .control-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .controls h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
+    }
+
+    button {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f5fa;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .status-card,
+    .readout,
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-card {
+      font-family: inherit;
+    }
+
+    .status-card p {
+      margin: 0;
+    }
+
+    .status-card p + p {
+      margin-top: 6px;
+    }
+
+    .status-title {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #eef2f7;
+      border-radius: 5px;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      margin: 12px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    details {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .exercise-block {
+      margin-top: 16px;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-left: 4px solid var(--violet);
+      background: #f5f3ff;
+      border-radius: 8px;
+      color: #35245f;
+    }
+
+    .callout p {
+      color: #4c3b75;
+    }
+
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .concept-grid,
+      .learning-path,
+      .focus-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .canvas-wrap {
+        min-height: 520px;
+      }
+
+      canvas {
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .legend {
+        position: static;
+        border-width: 1px 0 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>05. 行列式</h1>
+      <p class="lead">本页把 determinant 从公式 <code>ad-bc</code> 拉回几何本质：一个矩阵把单位正方形变成平行四边形，行列式就是这个平行四边形的有向面积。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">少量练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>矩阵把整个平面拉伸、压缩、剪切或翻转时，面积会变成原来的多少倍？方向感是否被翻转？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>对象：</strong>二维行列式先理解为矩阵变换对面积的有向缩放因子。</li>
+        <li><strong>列向量：</strong><code>A</code> 的两列是单位正方形两条边的落点。</li>
+        <li><strong>面积：</strong>这两列张成的平行四边形面积绝对值是 <code>|det(A)|</code>。</li>
+        <li><strong>符号：</strong><code>det(A)&gt;0</code> 保持方向感，<code>det(A)&lt;0</code> 翻转方向感。</li>
+        <li><strong>零：</strong><code>det(A)=0</code> 表示面积被压成 0，平面退化成线或点，矩阵不可逆。</li>
+        <li><strong>复合：</strong>连续做两个变换时，面积缩放因子相乘：<code>det(AB)=det(A)det(B)</code>。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：有向面积如何变化</h2>
+      <p>拖动蓝色或红色列向量，或调整右侧矩阵参数。浅色单位正方形经过矩阵后变成绿色/红色平行四边形；它的有向面积就是 <code>det(A)</code>。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-area" aria-current="page" data-mode="area">1 面积缩放</a>
+        <a class="mode-tab" href="#mode-sign" data-mode="sign">2 方向符号</a>
+        <a class="mode-tab" href="#mode-zero" data-mode="zero">3 det=0</a>
+        <a class="mode-tab" href="#mode-product" data-mode="product">4 复合</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
+
+      <div class="workspace">
+        <div class="canvas-wrap" aria-label="二维行列式交互画布">
+          <canvas id="scene" width="820" height="620"></canvas>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--grid);"></i>原网格</span>
+            <span><i class="swatch" style="background: var(--cyan);"></i>A 后网格</span>
+            <span><i class="swatch" style="background: var(--blue);"></i>第 1 列</span>
+            <span><i class="swatch" style="background: var(--red);"></i>第 2 列</span>
+            <span><i class="swatch" style="background: var(--green);"></i>正面积</span>
+            <span><i class="swatch" style="background: var(--amber);"></i>B 后面积</span>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle"></p>
+              <p id="statusDetail"></p>
+              <p id="formulaDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>矩阵 A</h3>
+            <label>
+              <span>a = A11 = <strong class="value" id="aValue">1.50</strong></span>
+              <input id="aSlider" type="range" min="-3" max="3" step="0.05" value="1.5">
+            </label>
+            <label>
+              <span>b = A12 = <strong class="value" id="bValue">0.60</strong></span>
+              <input id="bSlider" type="range" min="-3" max="3" step="0.05" value="0.6">
+            </label>
+            <label>
+              <span>c = A21 = <strong class="value" id="cValue">0.30</strong></span>
+              <input id="cSlider" type="range" min="-3" max="3" step="0.05" value="0.3">
+            </label>
+            <label>
+              <span>d = A22 = <strong class="value" id="dValue">1.20</strong></span>
+              <input id="dSlider" type="range" min="-3" max="3" step="0.05" value="1.2">
+            </label>
+            <p class="mini-note">第一列 <code>[a,c]</code> 和第二列 <code>[b,d]</code> 是单位正方形两条边的落点。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>复合中的 B</h3>
+            <label>
+              <span>p = B11 = <strong class="value" id="pValue">1.00</strong></span>
+              <input id="pSlider" type="range" min="-2" max="2" step="0.05" value="1">
+            </label>
+            <label>
+              <span>q = B12 = <strong class="value" id="qValue">0.80</strong></span>
+              <input id="qSlider" type="range" min="-2" max="2" step="0.05" value="0.8">
+            </label>
+            <label>
+              <span>r = B21 = <strong class="value" id="rValue">0.00</strong></span>
+              <input id="rSlider" type="range" min="-2" max="2" step="0.05" value="0">
+            </label>
+            <label>
+              <span>s = B22 = <strong class="value" id="sValue">1.00</strong></span>
+              <input id="sSlider" type="range" min="-2" max="2" step="0.05" value="1">
+            </label>
+            <p class="mini-note">切到“4 复合”时，观察 <code>det(AB)</code> 是否等于 <code>det(A)det(B)</code>。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>典型矩阵</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="identity">恒等</button>
+              <button type="button" data-preset="scale">放大面积</button>
+              <button type="button" data-preset="shear">剪切</button>
+              <button type="button" data-preset="reflect">翻转</button>
+              <button type="button" data-preset="collapse">压成线</button>
+              <button type="button" data-preset="rotate">旋转</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>当前计算</h3>
+            <div class="readout" id="readout"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 行列式是什么</h3>
+          <p>对二维矩阵，行列式最先应该理解成面积缩放因子，而不是一个孤立公式。</p>
+          <pre>A = [[a, b],
+     [c, d]]
+
+det(A) = a*d - b*c</pre>
+          <p>矩阵把单位正方形变成由两列 <code>[a,c]</code>、<code>[b,d]</code> 张成的平行四边形。这个平行四边形的有向面积就是 <code>det(A)</code>。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 绝对值表示面积倍数</h3>
+          <p>如果 <code>|det(A)|=3</code>，任何区域经过 <code>A</code> 后面积都会变成原来的 3 倍；如果 <code>|det(A)|=0.5</code>，面积变成一半。</p>
+          <p>这不只对单位正方形成立。线性变换会把网格中的每个小方格都以同样比例缩放面积。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 符号表示方向感</h3>
+          <p>二维平面里，<code>e1</code> 到 <code>e2</code> 的顺序有一个方向感。矩阵作用后，如果第一列到第二列仍保持同样的逆时针顺序，行列式为正；如果顺序翻转，行列式为负。</p>
+          <ul>
+            <li><code>det(A)&gt;0</code>：保持 orientation。</li>
+            <li><code>det(A)&lt;0</code>：发生一次镜像式翻转。</li>
+          </ul>
+        </article>
+
+        <article class="concept">
+          <h3>4. 为什么 det=0 表示不可逆</h3>
+          <p><code>det(A)=0</code> 意味着单位正方形被压成面积为 0 的形状：一条线或一个点。</p>
+          <p>这时二维信息丢失了。多个不同输入会落到同一个输出，所以无法唯一反推输入，也就没有逆矩阵。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. 公式 ad-bc 的意义</h3>
+          <p><code>ad-bc</code> 可以看成两个方向贡献的有向面积差。更本质地说，它是二维列向量叉积：</p>
+          <pre>[a, c] x [b, d] = a*d - c*b</pre>
+          <p>正负号记录两列的先后方向，绝对值记录平行四边形面积。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 复合时为什么相乘</h3>
+          <p>如果 <code>B</code> 先把面积放大 <code>det(B)</code> 倍，再由 <code>A</code> 放大 <code>det(A)</code> 倍，总面积缩放就是两者相乘。</p>
+          <pre class="formula">det(AB) = det(A)det(B)</pre>
+          <p>符号也会相乘：翻转一次为负，翻转两次又回到正。</p>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>本章最重要的一句话：行列式是矩阵变换对面积或体积的有向缩放因子；二维公式 <code>ad-bc</code> 是这个几何量的计算方式。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>少量练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么 <code>det(A)=0</code> 时矩阵不可逆？</li>
+          <li><code>det(A)&lt;0</code> 除了面积倍数外，还告诉我们什么？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>计算 <code>[[2,1],[3,4]]</code> 的行列式，并解释面积如何变化。</li>
+          <li>判断 <code>[[1,2],[2,4]]</code> 是否可逆，并用面积解释。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>点击“剪切”和“放大面积”，观察平行四边形面积如何变化。</li>
+          <li>点击“翻转”和“压成线”，比较负行列式和零行列式的几何区别。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>为什么旋转矩阵的行列式通常是 <code>1</code>，而镜像翻转的行列式是 <code>-1</code>？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li><code>det=0</code> 表示面积被压成 0，二维平面退化成线或点，信息丢失后无法唯一反推输入。</li>
+          <li>负号说明方向感被翻转；面积倍数是 <code>|det(A)|</code>。</li>
+          <li><code>2*4-1*3=5</code>，面积变成原来的 5 倍，方向感保持。</li>
+          <li><code>1*4-2*2=0</code>，不可逆；两列共线，单位正方形被压成一条线。</li>
+          <li>旋转只改变方向不改变面积，也不翻转 orientation，所以 det 是 <code>1</code>；镜像不改面积但翻转 orientation，所以 det 是 <code>-1</code>。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“面积缩放 -> 符号 -> 零行列式 -> 公式 -> 复合”的顺序，让公式服务于几何意义，而不是反过来。</p>
+      <ul class="source-list">
+        <li>概念校准：行列式与面积、体积缩放以及可逆性的关系，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/lecture-18-properties-of-determinants/">MIT OCW: Properties of Determinants</a>。</li>
+        <li>直觉线索：从线性变换后的网格和有向面积理解 determinant，参考 <a href="https://www.3blue1brown.com/lessons/determinant">3Blue1Brown: The determinant</a>。</li>
+        <li>练习组织：从 <code>2x2</code> 公式、面积缩放到可逆判断，参考 <a href="https://www.khanacademy.org/math/linear-algebra/matrix-transformations/determinant-depth">Khan Academy: Determinants</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const sliders = {
+      a: document.getElementById("aSlider"),
+      b: document.getElementById("bSlider"),
+      c: document.getElementById("cSlider"),
+      d: document.getElementById("dSlider"),
+      p: document.getElementById("pSlider"),
+      q: document.getElementById("qSlider"),
+      r: document.getElementById("rSlider"),
+      s: document.getElementById("sSlider")
+    };
+
+    const values = {
+      a: document.getElementById("aValue"),
+      b: document.getElementById("bValue"),
+      c: document.getElementById("cValue"),
+      d: document.getElementById("dValue"),
+      p: document.getElementById("pValue"),
+      q: document.getElementById("qValue"),
+      r: document.getElementById("rValue"),
+      s: document.getElementById("sValue")
+    };
+
+    const readout = document.getElementById("readout");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusDetail = document.getElementById("statusDetail");
+    const formulaDetail = document.getElementById("formulaDetail");
+    const modeGuide = document.getElementById("modeGuide");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const presetButtons = document.querySelectorAll("[data-preset]");
+
+    const EPS = 0.04;
+    const state = {
+      A: { a: 1.5, b: 0.6, c: 0.3, d: 1.2 },
+      B: { a: 1, b: 0.8, c: 0, d: 1 },
+      mode: "area",
+      dragTarget: null,
+      scale: 54
+    };
+
+    const presets = {
+      identity: { a: 1, b: 0, c: 0, d: 1 },
+      scale: { a: 2, b: 0, c: 0, d: 1.5 },
+      shear: { a: 1, b: 1.4, c: 0, d: 1 },
+      reflect: { a: -1, b: 0, c: 0, d: 1 },
+      collapse: { a: 1, b: 2, c: 0.5, d: 1 },
+      rotate: { a: 0, b: -1, c: 1, d: 0 }
+    };
+
+    const modeGuides = {
+      area: {
+        title: "第 1 步：看面积缩放",
+        body: "矩阵把单位正方形变成由两列张成的平行四边形。这个平行四边形的面积绝对值就是 |det(A)|。",
+        task: "任务：拖动蓝色或红色列向量，让面积变大、变小，并观察 det(A)。"
+      },
+      sign: {
+        title: "第 2 步：看方向符号",
+        body: "正行列式保持 e1 到 e2 的方向感，负行列式说明两列的先后方向被翻转。",
+        task: "任务：点击“翻转”，观察面积没必要变小，但符号会变负。"
+      },
+      zero: {
+        title: "第 3 步：看 det=0",
+        body: "det(A)=0 时，单位正方形被压成面积为 0 的线段或点。二维信息丢失，所以矩阵不可逆。",
+        task: "任务：点击“压成线”，观察两列共线时平行四边形如何退化。"
+      },
+      product: {
+        title: "第 4 步：看复合",
+        body: "先做 B 再做 A 时，面积先乘 det(B)，再乘 det(A)，所以总缩放是 det(A)det(B)。",
+        task: "任务：调整 B 的参数，比较 det(AB) 和 det(A)det(B)。"
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function origin() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function toScreen(vector) {
+      const o = origin();
+      return {
+        x: o.x + vector.x * state.scale,
+        y: o.y - vector.y * state.scale
+      };
+    }
+
+    function toWorld(point) {
+      const o = origin();
+      return {
+        x: (point.x - o.x) / state.scale,
+        y: (o.y - point.y) / state.scale
+      };
+    }
+
+    function pointerPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function matVec(M, v) {
+      return {
+        x: M.a * v.x + M.b * v.y,
+        y: M.c * v.x + M.d * v.y
+      };
+    }
+
+    function matMul(L, R) {
+      return {
+        a: L.a * R.a + L.b * R.c,
+        b: L.a * R.b + L.b * R.d,
+        c: L.c * R.a + L.d * R.c,
+        d: L.c * R.b + L.d * R.d
+      };
+    }
+
+    function det(M) {
+      return M.a * M.d - M.b * M.c;
+    }
+
+    function col1(M) {
+      return { x: M.a, y: M.c };
+    }
+
+    function col2(M) {
+      return { x: M.b, y: M.d };
+    }
+
+    function add(u, v) {
+      return { x: u.x + v.x, y: u.y + v.y };
+    }
+
+    function scaleVector(k, v) {
+      return { x: k * v.x, y: k * v.y };
+    }
+
+    function norm(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function drawBaseGrid() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const o = origin();
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = getCss("--grid");
+
+      for (let x = o.x % state.scale; x <= width; x += state.scale) {
+        lineScreen({ x, y: 0 }, { x, y: height });
+      }
+      for (let y = o.y % state.scale; y <= height; y += state.scale) {
+        lineScreen({ x: 0, y }, { x: width, y });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.5;
+      lineScreen({ x: 0, y: o.y }, { x: width, y: o.y });
+      lineScreen({ x: o.x, y: 0 }, { x: o.x, y: height });
+
+      ctx.fillStyle = getCss("--axis");
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      for (let i = -6; i <= 6; i += 1) {
+        if (i !== 0) {
+          const xPoint = toScreen({ x: i, y: 0 });
+          const yPoint = toScreen({ x: 0, y: i });
+          ctx.fillText(String(i), xPoint.x - 4, o.y + 16);
+          ctx.fillText(String(i), o.x + 8, yPoint.y + 4);
+        }
+      }
+    }
+
+    function drawTransformedGrid(M, color, alpha = 0.62, dashed = false) {
+      const span = 7;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.1;
+      if (dashed) {
+        ctx.setLineDash([7, 7]);
+      }
+
+      for (let k = -span; k <= span; k += 1) {
+        lineScreen(toScreen(matVec(M, { x: k, y: -span })), toScreen(matVec(M, { x: k, y: span })));
+        lineScreen(toScreen(matVec(M, { x: -span, y: k })), toScreen(matVec(M, { x: span, y: k })));
+      }
+
+      ctx.setLineDash([]);
+      ctx.globalAlpha = Math.min(1, alpha + 0.18);
+      ctx.lineWidth = 2;
+      lineScreen(toScreen(matVec(M, { x: -span, y: 0 })), toScreen(matVec(M, { x: span, y: 0 })));
+      lineScreen(toScreen(matVec(M, { x: 0, y: -span })), toScreen(matVec(M, { x: 0, y: span })));
+      ctx.restore();
+    }
+
+    function drawUnitSquare() {
+      const points = [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+        { x: 0, y: 1 }
+      ].map(toScreen);
+      ctx.save();
+      ctx.fillStyle = getCss("--blue-soft");
+      ctx.strokeStyle = "rgba(37, 99, 235, 0.55)";
+      ctx.lineWidth = 2;
+      polygon(points);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawParallelogram(M, label, fillStyle, strokeStyle) {
+      const points = [
+        matVec(M, { x: 0, y: 0 }),
+        matVec(M, { x: 1, y: 0 }),
+        matVec(M, { x: 1, y: 1 }),
+        matVec(M, { x: 0, y: 1 })
+      ].map(toScreen);
+
+      ctx.save();
+      ctx.fillStyle = fillStyle;
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = 2.5;
+      polygon(points);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      const center = toScreen(scaleVector(0.5, add(col1(M), col2(M))));
+      drawLabel(label, center.x + 10, center.y - 10, strokeStyle);
+    }
+
+    function drawColumns(M, prefix = "") {
+      drawVector(col1(M), getCss("--blue"), `${prefix}col1`, 3.5);
+      drawVector(col2(M), getCss("--red"), `${prefix}col2`, 3.5);
+    }
+
+    function drawOrientationArc(M) {
+      const c1 = col1(M);
+      const c2 = col2(M);
+      if (norm(c1) < EPS || norm(c2) < EPS) {
+        return;
+      }
+
+      const angle1 = Math.atan2(c1.y, c1.x);
+      const angle2 = Math.atan2(c2.y, c2.x);
+      const determinant = det(M);
+      const start = -angle1;
+      let end = -angle2;
+      if (determinant >= 0 && end > start) {
+        end -= Math.PI * 2;
+      }
+      if (determinant < 0 && end < start) {
+        end += Math.PI * 2;
+      }
+
+      const o = origin();
+      ctx.save();
+      ctx.strokeStyle = determinant >= 0 ? getCss("--green") : getCss("--red");
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, 56, start, end, determinant >= 0);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      drawLabel(determinant >= 0 ? "方向保持" : "方向翻转", o.x + 62, o.y - 52, ctx.strokeStyle);
+      ctx.restore();
+    }
+
+    function drawZeroGuide(M) {
+      const determinant = det(M);
+      if (Math.abs(determinant) >= EPS) {
+        drawLabel("det(A) 不为 0，单位面积没有被压扁", 22, 34, getCss("--green"));
+        return;
+      }
+      const direction = norm(col1(M)) >= norm(col2(M)) ? col1(M) : col2(M);
+      if (norm(direction) < EPS) {
+        drawOriginDisk(getCss("--red"), "所有面积压到点");
+      } else {
+        drawLineThrough(direction, getCss("--red"), "面积压成线", 3.4);
+      }
+    }
+
+    function drawProductView() {
+      const AB = matMul(state.A, state.B);
+      drawTransformedGrid(state.B, getCss("--amber"), 0.42, true);
+      drawTransformedGrid(AB, getCss("--cyan"), 0.6, false);
+      drawParallelogram(state.B, "B 后", getCss("--amber-soft"), getCss("--amber"));
+      drawParallelogram(AB, "AB 后", det(AB) >= 0 ? getCss("--green-soft") : getCss("--red-soft"), det(AB) >= 0 ? getCss("--green") : getCss("--red"));
+      drawVector(col1(state.B), getCss("--amber"), "B col1", 2.5);
+      drawVector(col2(state.B), getCss("--amber"), "B col2", 2.5);
+    }
+
+    function draw() {
+      drawBaseGrid();
+      drawUnitSquare();
+
+      if (state.mode === "product") {
+        drawProductView();
+      } else {
+        drawTransformedGrid(state.A, getCss("--cyan"));
+        drawParallelogram(state.A, "A 后面积", det(state.A) >= 0 ? getCss("--green-soft") : getCss("--red-soft"), det(state.A) >= 0 ? getCss("--green") : getCss("--red"));
+        drawColumns(state.A);
+        if (state.mode === "sign") {
+          drawOrientationArc(state.A);
+        }
+        if (state.mode === "zero") {
+          drawZeroGuide(state.A);
+        }
+      }
+
+      updateUi();
+    }
+
+    function drawLineThrough(direction, color, label, width = 2.5) {
+      const unit = normalize(direction);
+      if (norm(unit) < EPS) {
+        return;
+      }
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash([9, 7]);
+      lineScreen(toScreen(scaleVector(-8, unit)), toScreen(scaleVector(8, unit)));
+      ctx.setLineDash([]);
+      const labelPoint = toScreen(scaleVector(2.2, unit));
+      drawLabel(label, labelPoint.x + 8, labelPoint.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawOriginDisk(color, label) {
+      const p = toScreen({ x: 0, y: 0 });
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      drawLabel(label, p.x + 12, p.y - 10, color);
+      ctx.restore();
+    }
+
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(label, end.x + 8, end.y - 8, color);
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      drawLabel(label, end.x + 8, end.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawLabel(text, x, y, color) {
+      ctx.save();
+      ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+      const metrics = ctx.measureText(text);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(x - 3, y - 14, metrics.width + 6, 18);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function polygon(points) {
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.closePath();
+    }
+
+    function normalize(v) {
+      const length = norm(v);
+      return length < EPS ? { x: 0, y: 0 } : { x: v.x / length, y: v.y / length };
+    }
+
+    function updateUi() {
+      syncControls();
+      renderModeGuide();
+      updateStatus();
+      updateReadout();
+    }
+
+    function syncControls() {
+      sliders.a.value = String(state.A.a);
+      sliders.b.value = String(state.A.b);
+      sliders.c.value = String(state.A.c);
+      sliders.d.value = String(state.A.d);
+      sliders.p.value = String(state.B.a);
+      sliders.q.value = String(state.B.b);
+      sliders.r.value = String(state.B.c);
+      sliders.s.value = String(state.B.d);
+      values.a.textContent = fmt(state.A.a);
+      values.b.textContent = fmt(state.A.b);
+      values.c.textContent = fmt(state.A.c);
+      values.d.textContent = fmt(state.A.d);
+      values.p.textContent = fmt(state.B.a);
+      values.q.textContent = fmt(state.B.b);
+      values.r.textContent = fmt(state.B.c);
+      values.s.textContent = fmt(state.B.d);
+
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === state.mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus() {
+      const determinant = det(state.A);
+      const areaScale = Math.abs(determinant);
+      if (Math.abs(determinant) < EPS) {
+        statusTitle.textContent = "det(A)=0：面积被压扁";
+        statusDetail.textContent = "单位正方形退化成线或点，二维信息丢失，因此 A 不可逆。";
+      } else if (determinant > 0) {
+        statusTitle.textContent = "det(A)>0：面积缩放且方向保持";
+        statusDetail.textContent = `任意区域面积约变成原来的 ${fmt(areaScale)} 倍，orientation 保持。`;
+      } else {
+        statusTitle.textContent = "det(A)<0：面积缩放且方向翻转";
+        statusDetail.textContent = `任意区域面积约变成原来的 ${fmt(areaScale)} 倍，同时发生镜像式翻转。`;
+      }
+      formulaDetail.textContent = `det(A)=a*d-b*c=${fmt(state.A.a)}*${fmt(state.A.d)}-${fmt(state.A.b)}*${fmt(state.A.c)}=${fmt(determinant)}。`;
+    }
+
+    function updateReadout() {
+      const A = state.A;
+      const B = state.B;
+      const AB = matMul(A, B);
+      const lines = [
+        `A = [[${fmt(A.a)}, ${fmt(A.b)}],`,
+        `     [${fmt(A.c)}, ${fmt(A.d)}]]`,
+        `col1 = [${fmt(A.a)}, ${fmt(A.c)}]`,
+        `col2 = [${fmt(A.b)}, ${fmt(A.d)}]`,
+        `det(A) = ${fmt(det(A))}`,
+        `|det(A)| = ${fmt(Math.abs(det(A)))}`,
+        `orientation = ${det(A) >= 0 ? "保持或退化" : "翻转"}`
+      ];
+
+      if (state.mode === "product") {
+        lines.push(
+          "",
+          `B = [[${fmt(B.a)}, ${fmt(B.b)}],`,
+          `     [${fmt(B.c)}, ${fmt(B.d)}]]`,
+          `det(B) = ${fmt(det(B))}`,
+          `AB = [[${fmt(AB.a)}, ${fmt(AB.b)}],`,
+          `      [${fmt(AB.c)}, ${fmt(AB.d)}]]`,
+          `det(AB) = ${fmt(det(AB))}`,
+          `det(A)det(B) = ${fmt(det(A) * det(B))}`
+        );
+      }
+
+      readout.innerHTML = lines.join("<br>");
+    }
+
+    function activateMode(mode) {
+      state.mode = mode;
+      draw();
+    }
+
+    function bindSlider(name, update) {
+      ["input", "change"].forEach((eventName) => {
+        sliders[name].addEventListener(eventName, () => {
+          update(Number(sliders[name].value));
+          draw();
+        });
+      });
+    }
+
+    bindSlider("a", (value) => {
+      state.A.a = value;
+    });
+    bindSlider("b", (value) => {
+      state.A.b = value;
+    });
+    bindSlider("c", (value) => {
+      state.A.c = value;
+    });
+    bindSlider("d", (value) => {
+      state.A.d = value;
+    });
+    bindSlider("p", (value) => {
+      state.B.a = value;
+    });
+    bindSlider("q", (value) => {
+      state.B.b = value;
+    });
+    bindSlider("r", (value) => {
+      state.B.c = value;
+    });
+    bindSlider("s", (value) => {
+      state.B.d = value;
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.A = { ...presets[button.dataset.preset] };
+        draw();
+      });
+    });
+
+    function nearestDragTarget(point) {
+      const candidates = [
+        { name: "col1", distance: distance(point, toScreen(col1(state.A))) },
+        { name: "col2", distance: distance(point, toScreen(col2(state.A))) }
+      ];
+      candidates.sort((left, right) => left.distance - right.distance);
+      return candidates[0].distance < 24 ? candidates[0].name : null;
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (state.mode === "product") {
+        return;
+      }
+      const target = nearestDragTarget(pointerPoint(event));
+      if (target) {
+        state.dragTarget = target;
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.dragTarget) {
+        return;
+      }
+
+      const world = toWorld(pointerPoint(event));
+      const next = {
+        x: clamp(world.x, -3, 3),
+        y: clamp(world.y, -3, 3)
+      };
+
+      if (state.dragTarget === "col1") {
+        state.A.a = next.x;
+        state.A.c = next.y;
+      } else {
+        state.A.b = next.x;
+        state.A.d = next.y;
+      }
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      state.dragTarget = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      state.dragTarget = null;
+    });
+
+    function getCss(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmt(value) {
+      const fixed = Number(value).toFixed(2);
+      return fixed === "-0.00" ? "0.00" : fixed;
+    }
+
+    function distance(p, q) {
+      return Math.hypot(p.x - q.x, p.y - q.y);
+    }
+
+    function lineScreen(start, end) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1474 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>04. 子空间、秩与零空间</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --grid: #d8deea;
+      --axis: #6f7b91;
+      --border: #d8deea;
+      --code: #243047;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --cyan: #0891b2;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --violet-soft: rgba(124, 58, 237, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #bfdbfe;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .canvas-wrap,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: calc(100% - 32px);
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 16px;
+    }
+
+    .control-section + .control-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .controls h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
+    }
+
+    button {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f5fa;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .status-card,
+    .readout,
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-card {
+      font-family: inherit;
+    }
+
+    .status-card p {
+      margin: 0;
+    }
+
+    .status-card p + p {
+      margin-top: 6px;
+    }
+
+    .status-title {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #eef2f7;
+      border-radius: 5px;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      margin: 12px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    details {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .exercise-block {
+      margin-top: 16px;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-left: 4px solid var(--violet);
+      background: #f5f3ff;
+      border-radius: 8px;
+      color: #35245f;
+    }
+
+    .callout p {
+      color: #4c3b75;
+    }
+
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .concept-grid,
+      .learning-path,
+      .focus-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .canvas-wrap {
+        min-height: 520px;
+      }
+
+      canvas {
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .legend {
+        position: static;
+        border-width: 1px 0 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>04. 子空间、秩与零空间</h1>
+      <p class="lead">本页把矩阵看成一个空间压缩器：它可能把整个平面保持为平面，也可能压成一条线，甚至压成一个点。column space 描述所有可能输出，rank 描述输出维度，null space 描述哪些输入被压到零。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">少量练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>一个矩阵到底保留了多少输出方向，又把哪些输入方向压没了？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>子空间：</strong>一个集合如果包含零向量，并且对加法和数乘封闭，它就是 subspace。</li>
+        <li><strong>列空间：</strong><code>Col(A)</code> 是矩阵列向量所有线性组合组成的集合，也就是所有可能输出。</li>
+        <li><strong>秩：</strong><code>rank(A)</code> 是列空间的维数，表示矩阵输出还能覆盖多少独立方向。</li>
+        <li><strong>零空间：</strong><code>N(A)</code> 是所有满足 <code>Ax=0</code> 的输入，也就是被矩阵压到零的方向。</li>
+        <li><strong>解方程：</strong><code>Ax=b</code> 有解，当且仅当 <code>b</code> 落在 <code>Col(A)</code> 中。</li>
+        <li><strong>维数守恒：</strong>对 <code>2x2</code> 矩阵，<code>rank(A)+dim N(A)=2</code>。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：矩阵如何保留和压缩方向</h2>
+      <p>拖动矩阵列向量或调整右侧参数。蓝色和红色是矩阵的两列，青色网格是整个平面经过 <code>A</code> 后的样子；紫色表示 null space，橙色表示目标向量 <code>b</code>。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-subspace" aria-current="page" data-mode="subspace">1 子空间</a>
+        <a class="mode-tab" href="#mode-column" data-mode="column">2 列空间与秩</a>
+        <a class="mode-tab" href="#mode-null" data-mode="null">3 零空间</a>
+        <a class="mode-tab" href="#mode-solve" data-mode="solve">4 Ax=b</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
+
+      <div class="workspace">
+        <div class="canvas-wrap" aria-label="二维子空间、秩和零空间交互画布">
+          <canvas id="scene" width="820" height="620"></canvas>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--grid);"></i>输入网格</span>
+            <span><i class="swatch" style="background: var(--cyan);"></i>A 后网格</span>
+            <span><i class="swatch" style="background: var(--blue);"></i>第 1 列</span>
+            <span><i class="swatch" style="background: var(--red);"></i>第 2 列</span>
+            <span><i class="swatch" style="background: var(--green);"></i>column space</span>
+            <span><i class="swatch" style="background: var(--violet);"></i>null space</span>
+            <span><i class="swatch" style="background: var(--amber);"></i>目标 b</span>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle"></p>
+              <p id="statusDetail"></p>
+              <p id="solveDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>矩阵 A</h3>
+            <label>
+              <span>a = A11 = <strong class="value" id="aValue">1.00</strong></span>
+              <input id="aSlider" type="range" min="-3" max="3" step="0.05" value="1">
+            </label>
+            <label>
+              <span>b = A12 = <strong class="value" id="bValue">1.00</strong></span>
+              <input id="bSlider" type="range" min="-3" max="3" step="0.05" value="1">
+            </label>
+            <label>
+              <span>c = A21 = <strong class="value" id="cValue">0.00</strong></span>
+              <input id="cSlider" type="range" min="-3" max="3" step="0.05" value="0">
+            </label>
+            <label>
+              <span>d = A22 = <strong class="value" id="dValue">1.00</strong></span>
+              <input id="dSlider" type="range" min="-3" max="3" step="0.05" value="1">
+            </label>
+            <p class="mini-note">第一列是 <code>[a,c]</code>，第二列是 <code>[b,d]</code>。列空间就是它们的 span。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>目标向量 b</h3>
+            <label>
+              <span>b1 = <strong class="value" id="targetXValue">2.00</strong></span>
+              <input id="targetXSlider" type="range" min="-5" max="5" step="0.05" value="2">
+            </label>
+            <label>
+              <span>b2 = <strong class="value" id="targetYValue">1.00</strong></span>
+              <input id="targetYSlider" type="range" min="-5" max="5" step="0.05" value="1">
+            </label>
+            <p class="mini-note">切到“4 Ax=b”时，观察目标 <code>b</code> 是否落在 column space 上。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>典型矩阵</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="full">满秩</button>
+              <button type="button" data-preset="rankOne">压成直线</button>
+              <button type="button" data-preset="projection">投影到 x 轴</button>
+              <button type="button" data-preset="zero">零矩阵</button>
+              <button type="button" data-preset="shear">剪切满秩</button>
+              <button type="button" data-preset="dependent">列相关</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>当前计算</h3>
+            <div class="readout" id="readout"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 子空间是什么</h3>
+          <p>子空间不是“长得像一小块区域”的集合，而是仍然能做线性代数的集合。它必须满足：</p>
+          <pre>0 在集合中
+u, v 在集合中 => u+v 也在集合中
+u 在集合中, k 是数 => k*u 也在集合中</pre>
+          <p>二维平面里的典型子空间只有三类：原点、一条穿过原点的直线、整个平面。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. Column space 是所有可能输出</h3>
+          <p>矩阵乘向量可以看成列向量的线性组合：</p>
+          <pre>A[x,y] = x*col1(A) + y*col2(A)</pre>
+          <p>当 <code>x,y</code> 取遍所有实数，所有可能的输出就形成 <code>Col(A)</code>。所以 <code>Ax=b</code> 是否有解，本质上是在问：<code>b</code> 是否属于 <code>Col(A)</code>。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. Rank 表示输出维度</h3>
+          <p><code>rank(A)</code> 是 column space 的维数。对 <code>2x2</code> 矩阵：</p>
+          <ul>
+            <li><code>rank=2</code>：两列不共线，输出覆盖整个平面。</li>
+            <li><code>rank=1</code>：两列共线但不全为零，输出只落在一条线。</li>
+            <li><code>rank=0</code>：两列都是零向量，所有输入都输出到原点。</li>
+          </ul>
+        </article>
+
+        <article class="concept">
+          <h3>4. Null space 是被压没的输入</h3>
+          <p><code>N(A)</code> 收集所有满足 <code>Ax=0</code> 的输入。它总是子空间，因为线性变换会保留加法和数乘。</p>
+          <pre>N(A) = { x | Ax = 0 }</pre>
+          <p>如果矩阵把平面压成一条线，那么一定有一条输入方向被压到零；如果矩阵满秩，只有零向量会被送到零。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. 秩-零化度关系</h3>
+          <p>输入空间里的维度不会凭空消失，它要么变成输出方向，要么被压进 null space。对二维输入：</p>
+          <pre class="formula">rank(A) + nullity(A) = 2</pre>
+          <p>满秩矩阵保留两个输出方向，所以 nullity 是 0；rank 1 矩阵只保留一个输出方向，所以 nullity 是 1。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 常见混淆</h3>
+          <ul>
+            <li>column space 在输出空间里，null space 在输入空间里。对方阵可以画在同一平面，但含义不同。</li>
+            <li>rank 不是矩阵里非零数字的个数，而是独立输出方向的个数。</li>
+            <li>一条不过原点的直线不是子空间，因为它不包含零向量，也不对数乘封闭。</li>
+            <li><code>Ax=b</code> 的解集不是 column space；column space 是所有可能的右侧 <code>b</code>。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>本章最重要的一句话：column space 问“能输出到哪里”，null space 问“哪些输入被压到零”，rank 问“输出还剩几个独立方向”。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>少量练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么一条不经过原点的直线不是子空间？</li>
+          <li><code>Col(A)</code> 和 <code>N(A)</code> 分别生活在输入空间还是输出空间？它们各回答什么问题？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>设 <code>A=[[1,2],[2,4]]</code>，求 <code>rank(A)</code>，并写出 <code>N(A)</code> 的一个方向。</li>
+          <li>设 <code>A=[[1,0],[0,0]]</code>，判断 <code>b=[2,0]</code> 和 <code>b=[2,1]</code> 是否在 <code>Col(A)</code> 中。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>点击“满秩”“压成直线”“零矩阵”，观察 rank 和 nullity 如何变化。</li>
+          <li>切到“4 Ax=b”，在“投影到 x 轴”预设下拖动目标 <code>b</code>，找一个有解目标和一个无解目标。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>为什么 rank 变小通常意味着某些不同输入会得到相同输出？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>不过原点就不包含零向量；而且取线上一点做数乘，通常会离开这条线。</li>
+          <li><code>Col(A)</code> 在输出空间，回答“哪些 <code>b</code> 可以被表示成 <code>Ax</code>”；<code>N(A)</code> 在输入空间，回答“哪些 <code>x</code> 会被送到零”。</li>
+          <li>两列共线且非零，所以 <code>rank(A)=1</code>。解 <code>x+2y=0</code>，一个 null space 方向是 <code>[-2,1]</code>。</li>
+          <li><code>[2,0]</code> 在 column space 中；<code>[2,1]</code> 不在，因为这个矩阵只能输出到 x 轴。</li>
+          <li>rank 分别是 2、1、0；对应 nullity 是 0、1、2。</li>
+          <li>rank 变小表示某些输入方向被压到零；沿这些方向移动不会改变输出，所以不同输入可能落到同一个输出。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“子空间封闭性 -> column space -> rank -> null space -> Ax=b”的顺序，目标是把抽象定义放回矩阵变换和解方程的语境中。</p>
+      <ul class="source-list">
+        <li>概念校准：四个基本子空间、rank 和 null space 的关系，参考 <a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/resources/lecture-6-column-space-and-nullspace/">MIT OCW: Column Space and Nullspace</a>。</li>
+        <li>直觉线索：从列空间和零空间理解 <code>Ax=b</code> 是否可解，参考 <a href="https://www.3blue1brown.com/lessons/inverse-matrices">3Blue1Brown: Inverse matrices, column space, and null space</a>。</li>
+        <li>练习组织：从判断子空间、求 column space 和 null space 到 rank，参考 <a href="https://www.khanacademy.org/math/linear-algebra/vectors-and-spaces/null-column-space">Khan Academy: Null space and column space</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const sliders = {
+      a: document.getElementById("aSlider"),
+      b: document.getElementById("bSlider"),
+      c: document.getElementById("cSlider"),
+      d: document.getElementById("dSlider"),
+      targetX: document.getElementById("targetXSlider"),
+      targetY: document.getElementById("targetYSlider")
+    };
+
+    const values = {
+      a: document.getElementById("aValue"),
+      b: document.getElementById("bValue"),
+      c: document.getElementById("cValue"),
+      d: document.getElementById("dValue"),
+      targetX: document.getElementById("targetXValue"),
+      targetY: document.getElementById("targetYValue")
+    };
+
+    const readout = document.getElementById("readout");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusDetail = document.getElementById("statusDetail");
+    const solveDetail = document.getElementById("solveDetail");
+    const modeGuide = document.getElementById("modeGuide");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const presetButtons = document.querySelectorAll("[data-preset]");
+
+    const EPS = 0.04;
+    const state = {
+      A: { a: 1, b: 1, c: 0, d: 1 },
+      target: { x: 2, y: 1 },
+      mode: "subspace",
+      dragTarget: null,
+      scale: 54
+    };
+
+    const presets = {
+      full: { A: { a: 1, b: 1, c: 0, d: 1 }, target: { x: 2, y: 1 } },
+      rankOne: { A: { a: 1, b: 2, c: 1, d: 2 }, target: { x: 3, y: 3 } },
+      projection: { A: { a: 1, b: 0, c: 0, d: 0 }, target: { x: 2, y: 0 } },
+      zero: { A: { a: 0, b: 0, c: 0, d: 0 }, target: { x: 0, y: 0 } },
+      shear: { A: { a: 1, b: 1.2, c: 0, d: 1 }, target: { x: 2, y: 1 } },
+      dependent: { A: { a: 2, b: -1, c: 4, d: -2 }, target: { x: 1, y: 2 } }
+    };
+
+    const modeGuides = {
+      subspace: {
+        title: "第 1 步：先看什么是子空间",
+        body: "二维里，穿过原点的直线、原点本身、整个平面都是子空间；不过原点的线不是。子空间必须能承受加法和数乘。",
+        task: "任务：观察紫色穿原点直线。想一想：如果把整条线平移一点，它还会是子空间吗？"
+      },
+      column: {
+        title: "第 2 步：看所有可能输出",
+        body: "矩阵的输出是两列的所有线性组合。青色网格和绿色标记显示输出能覆盖平面、直线还是只剩原点。",
+        task: "任务：点击“满秩”“压成直线”“零矩阵”，比较 column space 的形状。"
+      },
+      null: {
+        title: "第 3 步：看哪些输入被压到零",
+        body: "null space 是 Ax=0 的所有输入。rank 低时，更多输入方向被压没；满秩时只有零向量会到零。",
+        task: "任务：在 rank 1 预设下观察紫色 null space，并比较它和绿色 column space 的含义。"
+      },
+      solve: {
+        title: "第 4 步：用 column space 判断 Ax=b",
+        body: "Ax=b 有解，当且仅当橙色目标 b 落在绿色 column space 中。满秩时任何 b 都可达；rank 1 时只有一条线上的 b 可达。",
+        task: "任务：在“投影到 x 轴”预设下拖动 b，找出哪些目标有解。"
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function origin() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function toScreen(vector) {
+      const o = origin();
+      return {
+        x: o.x + vector.x * state.scale,
+        y: o.y - vector.y * state.scale
+      };
+    }
+
+    function toWorld(point) {
+      const o = origin();
+      return {
+        x: (point.x - o.x) / state.scale,
+        y: (o.y - point.y) / state.scale
+      };
+    }
+
+    function pointerPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function matVec(M, v) {
+      return {
+        x: M.a * v.x + M.b * v.y,
+        y: M.c * v.x + M.d * v.y
+      };
+    }
+
+    function det(M) {
+      return M.a * M.d - M.b * M.c;
+    }
+
+    function col1(M) {
+      return { x: M.a, y: M.c };
+    }
+
+    function col2(M) {
+      return { x: M.b, y: M.d };
+    }
+
+    function row1(M) {
+      return { x: M.a, y: M.b };
+    }
+
+    function row2(M) {
+      return { x: M.c, y: M.d };
+    }
+
+    function dot(u, v) {
+      return u.x * v.x + u.y * v.y;
+    }
+
+    function cross(u, v) {
+      return u.x * v.y - u.y * v.x;
+    }
+
+    function norm(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function add(u, v) {
+      return { x: u.x + v.x, y: u.y + v.y };
+    }
+
+    function scaleVector(k, v) {
+      return { x: k * v.x, y: k * v.y };
+    }
+
+    function normalize(v) {
+      const length = norm(v);
+      return length < EPS ? { x: 0, y: 0 } : { x: v.x / length, y: v.y / length };
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function rankInfo() {
+      const A = state.A;
+      const c1 = col1(A);
+      const c2 = col2(A);
+      const n1 = norm(c1);
+      const n2 = norm(c2);
+      const determinant = det(A);
+
+      if (n1 < EPS && n2 < EPS) {
+        return {
+          rank: 0,
+          nullity: 2,
+          determinant,
+          columnKind: "point",
+          columnDirection: { x: 0, y: 0 },
+          nullKind: "plane",
+          nullDirection: null
+        };
+      }
+
+      if (Math.abs(determinant) >= EPS) {
+        return {
+          rank: 2,
+          nullity: 0,
+          determinant,
+          columnKind: "plane",
+          columnDirection: null,
+          nullKind: "point",
+          nullDirection: null
+        };
+      }
+
+      const direction = n1 >= n2 ? c1 : c2;
+      return {
+        rank: 1,
+        nullity: 1,
+        determinant,
+        columnKind: "line",
+        columnDirection: direction,
+        nullKind: "line",
+        nullDirection: nullDirection(A)
+      };
+    }
+
+    function nullDirection(A) {
+      const r1 = row1(A);
+      const r2 = row2(A);
+      const row = norm(r1) >= norm(r2) ? r1 : r2;
+      if (norm(row) < EPS) {
+        return null;
+      }
+      return normalize({ x: -row.y, y: row.x });
+    }
+
+    function solveInfo() {
+      const info = rankInfo();
+      const target = state.target;
+      if (info.rank === 2) {
+        const A = state.A;
+        const determinant = info.determinant;
+        return {
+          kind: "unique",
+          reachable: true,
+          x: {
+            x: (target.x * A.d - A.b * target.y) / determinant,
+            y: (A.a * target.y - target.x * A.c) / determinant
+          }
+        };
+      }
+
+      if (info.rank === 0) {
+        return norm(target) < EPS
+          ? { kind: "many", reachable: true, x: { x: 0, y: 0 } }
+          : { kind: "none", reachable: false };
+      }
+
+      const direction = info.columnDirection;
+      const distanceToLine = Math.abs(cross(direction, target)) / Math.max(norm(direction), EPS);
+      if (distanceToLine > EPS) {
+        return { kind: "none", reachable: false };
+      }
+
+      const A = state.A;
+      const row = norm(row1(A)) >= norm(row2(A)) ? row1(A) : row2(A);
+      const rhs = norm(row1(A)) >= norm(row2(A)) ? target.x : target.y;
+      const denom = dot(row, row);
+      const particular = denom < EPS ? { x: 0, y: 0 } : scaleVector(rhs / denom, row);
+      return {
+        kind: "many",
+        reachable: true,
+        x: particular,
+        direction: info.nullDirection
+      };
+    }
+
+    function drawBaseGrid() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const o = origin();
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = getCss("--grid");
+
+      for (let x = o.x % state.scale; x <= width; x += state.scale) {
+        lineScreen({ x, y: 0 }, { x, y: height });
+      }
+      for (let y = o.y % state.scale; y <= height; y += state.scale) {
+        lineScreen({ x: 0, y }, { x: width, y });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.5;
+      lineScreen({ x: 0, y: o.y }, { x: width, y: o.y });
+      lineScreen({ x: o.x, y: 0 }, { x: o.x, y: height });
+
+      ctx.fillStyle = getCss("--axis");
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      for (let i = -6; i <= 6; i += 1) {
+        if (i !== 0) {
+          const xPoint = toScreen({ x: i, y: 0 });
+          const yPoint = toScreen({ x: 0, y: i });
+          ctx.fillText(String(i), xPoint.x - 4, o.y + 16);
+          ctx.fillText(String(i), o.x + 8, yPoint.y + 4);
+        }
+      }
+    }
+
+    function drawTransformedGrid(M, color, alpha = 0.68) {
+      const span = 7;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.1;
+
+      for (let k = -span; k <= span; k += 1) {
+        lineScreen(toScreen(matVec(M, { x: k, y: -span })), toScreen(matVec(M, { x: k, y: span })));
+        lineScreen(toScreen(matVec(M, { x: -span, y: k })), toScreen(matVec(M, { x: span, y: k })));
+      }
+
+      ctx.globalAlpha = Math.min(1, alpha + 0.18);
+      ctx.lineWidth = 2;
+      lineScreen(toScreen(matVec(M, { x: -span, y: 0 })), toScreen(matVec(M, { x: span, y: 0 })));
+      lineScreen(toScreen(matVec(M, { x: 0, y: -span })), toScreen(matVec(M, { x: 0, y: span })));
+      ctx.restore();
+    }
+
+    function drawColumnSamples() {
+      const A = state.A;
+      ctx.save();
+      ctx.fillStyle = getCss("--green-soft");
+      for (let x = -3; x <= 3; x += 0.35) {
+        for (let y = -3; y <= 3; y += 0.35) {
+          const p = toScreen(matVec(A, { x, y }));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawSubspaceExamples() {
+      drawLineThrough({ x: 1, y: 1 }, getCss("--violet"), "穿原点：子空间", 3);
+      drawOffsetLine({ x: 1, y: 1 }, { x: 0, y: 1.4 }, getCss("--amber"), "不过原点：不是子空间");
+      drawVector({ x: 1.4, y: 1.4 }, getCss("--violet"), "u", 3);
+      drawVector({ x: -0.9, y: -0.9 }, getCss("--violet"), "-0.64u", 2.5);
+      drawVector({ x: 1.4, y: 2.8 }, getCss("--amber"), "数乘会离开", 2.5, { x: 0, y: 1.4 }, true);
+    }
+
+    function drawColumnView(info) {
+      drawTransformedGrid(state.A, getCss("--cyan"));
+      drawColumnSamples();
+      drawColumns();
+      if (info.rank === 2) {
+        drawLabel("Col(A)=整个 R^2", 22, 34, getCss("--green"));
+      } else if (info.rank === 1) {
+        drawLineThrough(info.columnDirection, getCss("--green"), "Col(A)", 3.4);
+      } else {
+        drawOriginDisk(getCss("--green"), "Col(A)={0}");
+      }
+    }
+
+    function drawNullView(info) {
+      drawTransformedGrid(state.A, getCss("--cyan"), 0.36);
+      drawColumns();
+      if (info.nullKind === "point") {
+        drawOriginDisk(getCss("--violet"), "N(A)={0}");
+      } else if (info.nullKind === "line") {
+        drawLineThrough(info.nullDirection, getCss("--violet"), "N(A)", 3.4);
+        drawVector(scaleVector(1.7, info.nullDirection), getCss("--violet"), "Ax=0", 3);
+      } else {
+        const width = canvas.getBoundingClientRect().width;
+        const height = canvas.getBoundingClientRect().height;
+        ctx.save();
+        ctx.fillStyle = getCss("--violet-soft");
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+        drawLabel("N(A)=整个 R^2", 22, 34, getCss("--violet"));
+      }
+    }
+
+    function drawSolveView(info, solution) {
+      drawColumnView(info);
+      drawVector(state.target, getCss("--amber"), "b", 4);
+      const p = toScreen(state.target);
+      ctx.save();
+      ctx.strokeStyle = solution.reachable ? getCss("--green") : getCss("--red");
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      if (solution.reachable && solution.x) {
+        const image = matVec(state.A, solution.x);
+        drawVector(image, getCss("--green"), "Ax", 2.5, { x: 0, y: 0 }, true);
+      }
+    }
+
+    function drawColumns() {
+      drawVector(col1(state.A), getCss("--blue"), "col1", 3.5);
+      drawVector(col2(state.A), getCss("--red"), "col2", 3.5);
+    }
+
+    function drawOriginDisk(color, label) {
+      const p = toScreen({ x: 0, y: 0 });
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      drawLabel(label, p.x + 12, p.y - 10, color);
+      ctx.restore();
+    }
+
+    function drawLineThrough(direction, color, label, width = 2.5) {
+      const unit = normalize(direction);
+      if (norm(unit) < EPS) {
+        return;
+      }
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash([9, 7]);
+      lineScreen(toScreen(scaleVector(-8, unit)), toScreen(scaleVector(8, unit)));
+      ctx.setLineDash([]);
+      const labelPoint = toScreen(scaleVector(2.2, unit));
+      drawLabel(label, labelPoint.x + 8, labelPoint.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawOffsetLine(direction, point, color, label) {
+      const unit = normalize(direction);
+      if (norm(unit) < EPS) {
+        return;
+      }
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([7, 7]);
+      lineScreen(toScreen(add(point, scaleVector(-8, unit))), toScreen(add(point, scaleVector(8, unit))));
+      ctx.setLineDash([]);
+      const labelPoint = toScreen(add(point, scaleVector(2.2, unit)));
+      drawLabel(label, labelPoint.x + 8, labelPoint.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(label, end.x + 8, end.y - 8, color);
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      drawLabel(label, end.x + 8, end.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawLabel(text, x, y, color) {
+      ctx.save();
+      ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+      const metrics = ctx.measureText(text);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(x - 3, y - 14, metrics.width + 6, 18);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function draw() {
+      const info = rankInfo();
+      const solution = solveInfo();
+      drawBaseGrid();
+
+      if (state.mode === "subspace") {
+        drawSubspaceExamples();
+      } else if (state.mode === "column") {
+        drawColumnView(info);
+      } else if (state.mode === "null") {
+        drawNullView(info);
+      } else {
+        drawSolveView(info, solution);
+      }
+
+      updateUi(info, solution);
+    }
+
+    function updateUi(info, solution) {
+      syncControls();
+      renderModeGuide();
+      updateStatus(info, solution);
+      updateReadout(info, solution);
+    }
+
+    function syncControls() {
+      sliders.a.value = String(state.A.a);
+      sliders.b.value = String(state.A.b);
+      sliders.c.value = String(state.A.c);
+      sliders.d.value = String(state.A.d);
+      sliders.targetX.value = String(state.target.x);
+      sliders.targetY.value = String(state.target.y);
+      values.a.textContent = fmt(state.A.a);
+      values.b.textContent = fmt(state.A.b);
+      values.c.textContent = fmt(state.A.c);
+      values.d.textContent = fmt(state.A.d);
+      values.targetX.textContent = fmt(state.target.x);
+      values.targetY.textContent = fmt(state.target.y);
+
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === state.mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus(info, solution) {
+      if (info.rank === 2) {
+        statusTitle.textContent = "rank(A)=2：输出覆盖整个平面";
+        statusDetail.textContent = "两列不共线，column space 是 R^2；null space 只有零向量。";
+      } else if (info.rank === 1) {
+        statusTitle.textContent = "rank(A)=1：输出被压成一条线";
+        statusDetail.textContent = "两列共线但不全为零，column space 是一条穿过原点的直线；null space 也是一条输入方向。";
+      } else {
+        statusTitle.textContent = "rank(A)=0：所有输出都变成零";
+        statusDetail.textContent = "两列都是零向量，column space 只有原点；整个输入平面都是 null space。";
+      }
+
+      if (solution.reachable) {
+        solveDetail.textContent = solution.kind === "unique"
+          ? `目标 b 在 column space 中，Ax=b 有唯一解 x=[${fmt(solution.x.x)}, ${fmt(solution.x.y)}]。`
+          : `目标 b 在 column space 中，Ax=b 有无穷多解。`;
+      } else {
+        solveDetail.textContent = "目标 b 不在 column space 中，所以 Ax=b 无解。";
+      }
+    }
+
+    function updateReadout(info, solution) {
+      const A = state.A;
+      const lines = [
+        `A = [[${fmt(A.a)}, ${fmt(A.b)}],`,
+        `     [${fmt(A.c)}, ${fmt(A.d)}]]`,
+        `col1 = [${fmt(A.a)}, ${fmt(A.c)}]`,
+        `col2 = [${fmt(A.b)}, ${fmt(A.d)}]`,
+        `det(A) = ${fmt(info.determinant)}`,
+        `rank(A) = ${info.rank}`,
+        `nullity(A) = ${info.nullity}`,
+        `rank + nullity = ${info.rank + info.nullity}`,
+        `target b = [${fmt(state.target.x)}, ${fmt(state.target.y)}]`
+      ];
+
+      if (info.rank === 1 && info.nullDirection) {
+        lines.push(`N(A) 方向 ≈ [${fmt(info.nullDirection.x)}, ${fmt(info.nullDirection.y)}]`);
+      } else if (info.rank === 2) {
+        lines.push("N(A) = {0}");
+      } else {
+        lines.push("N(A) = R^2");
+      }
+
+      if (solution.reachable && solution.x) {
+        lines.push(`一个解 x ≈ [${fmt(solution.x.x)}, ${fmt(solution.x.y)}]`);
+        if (solution.kind === "many" && solution.direction) {
+          lines.push(`全部解：x + t*[${fmt(solution.direction.x)}, ${fmt(solution.direction.y)}]`);
+        }
+      } else {
+        lines.push("Ax=b：无解");
+      }
+
+      readout.innerHTML = lines.join("<br>");
+    }
+
+    function activateMode(mode) {
+      state.mode = mode;
+      draw();
+    }
+
+    function bindSlider(name, update) {
+      ["input", "change"].forEach((eventName) => {
+        sliders[name].addEventListener(eventName, () => {
+          update(Number(sliders[name].value));
+          draw();
+        });
+      });
+    }
+
+    bindSlider("a", (value) => {
+      state.A.a = value;
+    });
+    bindSlider("b", (value) => {
+      state.A.b = value;
+    });
+    bindSlider("c", (value) => {
+      state.A.c = value;
+    });
+    bindSlider("d", (value) => {
+      state.A.d = value;
+    });
+    bindSlider("targetX", (value) => {
+      state.target.x = value;
+    });
+    bindSlider("targetY", (value) => {
+      state.target.y = value;
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const preset = presets[button.dataset.preset];
+        state.A = { ...preset.A };
+        state.target = { ...preset.target };
+        draw();
+      });
+    });
+
+    function nearestDragTarget(point) {
+      const candidates = [
+        { name: "col1", distance: distance(point, toScreen(col1(state.A))) },
+        { name: "col2", distance: distance(point, toScreen(col2(state.A))) },
+        { name: "target", distance: distance(point, toScreen(state.target)) }
+      ];
+      candidates.sort((left, right) => left.distance - right.distance);
+      return candidates[0].distance < 24 ? candidates[0].name : null;
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (state.mode === "subspace") {
+        return;
+      }
+      const target = nearestDragTarget(pointerPoint(event));
+      if (target) {
+        state.dragTarget = target;
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.dragTarget) {
+        return;
+      }
+
+      const world = toWorld(pointerPoint(event));
+      const limit = state.dragTarget === "target" ? 5 : 3;
+      const next = {
+        x: clamp(world.x, -limit, limit),
+        y: clamp(world.y, -limit, limit)
+      };
+
+      if (state.dragTarget === "col1") {
+        state.A.a = next.x;
+        state.A.c = next.y;
+      } else if (state.dragTarget === "col2") {
+        state.A.b = next.x;
+        state.A.d = next.y;
+      } else {
+        state.target = next;
+      }
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      state.dragTarget = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      state.dragTarget = null;
+    });
+
+    function getCss(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmt(value) {
+      const fixed = Number(value).toFixed(2);
+      return fixed === "-0.00" ? "0.00" : fixed;
+    }
+
+    function distance(p, q) {
+      return Math.hypot(p.x - q.x, p.y - q.y);
+    }
+
+    function lineScreen(start, end) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>

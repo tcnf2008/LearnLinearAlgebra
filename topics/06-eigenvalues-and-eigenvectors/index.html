@@ -1,0 +1,1580 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>06. 特征值与特征向量</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --grid: #d8deea;
+      --axis: #6f7b91;
+      --border: #d8deea;
+      --code: #243047;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --cyan: #0891b2;
+      --rose-soft: rgba(225, 29, 72, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #bfdbfe;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .canvas-wrap,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: calc(100% - 32px);
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 16px;
+    }
+
+    .control-section + .control-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .controls h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
+    }
+
+    button {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f5fa;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .status-card,
+    .readout,
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-card {
+      font-family: inherit;
+    }
+
+    .status-card p {
+      margin: 0;
+    }
+
+    .status-card p + p {
+      margin-top: 6px;
+    }
+
+    .status-title {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #eef2f7;
+      border-radius: 5px;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      margin: 12px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    details {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .exercise-block {
+      margin-top: 16px;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-left: 4px solid var(--violet);
+      background: #f5f3ff;
+      border-radius: 8px;
+      color: #35245f;
+    }
+
+    .callout p {
+      color: #4c3b75;
+    }
+
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .concept-grid,
+      .learning-path,
+      .focus-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .canvas-wrap {
+        min-height: 520px;
+      }
+
+      canvas {
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .legend {
+        position: static;
+        border-width: 1px 0 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>06. 特征值与特征向量</h1>
+      <p class="lead">本页从一个简单问题出发：矩阵会改变大多数向量的方向，但有没有一些方向只被拉长、压短或反向，而不被转弯？这些方向就是 eigenvector，对应的缩放倍数就是 eigenvalue。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">少量练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>在一个线性变换里，哪些方向经过变换后仍然落在同一条直线上？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>对象：</strong>特征向量是被矩阵作用后不改变方向的非零向量。</li>
+        <li><strong>倍数：</strong>特征值记录这个方向被放大、缩小、反向或压成零的程度。</li>
+        <li><strong>公式：</strong><code>Av = λv</code> 表示输出 <code>Av</code> 和输入 <code>v</code> 共线。</li>
+        <li><strong>求法：</strong>要有非零解，<code>(A-λI)v=0</code> 必须把空间压扁，所以 <code>det(A-λI)=0</code>。</li>
+        <li><strong>意义：</strong>如果能找到足够多独立特征向量，复杂变换可以拆成沿若干方向的独立缩放。</li>
+        <li><strong>限制：</strong>有些矩阵在实平面里没有真实特征方向，例如纯旋转 <code>90°</code>。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：寻找不转弯的方向</h2>
+      <p>拖动橙色输入向量 <code>v</code> 或调整矩阵。绿色 <code>Av</code> 是输出；当橙色和绿色落在同一条直线上时，<code>v</code> 就是一个特征方向。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-vector" aria-current="page" data-mode="vector">1 不转弯</a>
+        <a class="mode-tab" href="#mode-eigenlines" data-mode="eigenlines">2 特征方向</a>
+        <a class="mode-tab" href="#mode-equation" data-mode="equation">3 特征方程</a>
+        <a class="mode-tab" href="#mode-iterate" data-mode="iterate">4 反复应用</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
+
+      <div class="workspace">
+        <div class="canvas-wrap" aria-label="二维特征值与特征向量交互画布">
+          <canvas id="scene" width="820" height="620"></canvas>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--grid);"></i>原网格</span>
+            <span><i class="swatch" style="background: var(--cyan);"></i>A 后网格</span>
+            <span><i class="swatch" style="background: var(--amber);"></i>输入 v</span>
+            <span><i class="swatch" style="background: var(--green);"></i>输出 Av</span>
+            <span><i class="swatch" style="background: var(--blue);"></i>特征方向 1</span>
+            <span><i class="swatch" style="background: var(--red);"></i>特征方向 2</span>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle"></p>
+              <p id="statusDetail"></p>
+              <p id="angleDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>矩阵 A</h3>
+            <label>
+              <span>a = A11 = <strong class="value" id="aValue">2.00</strong></span>
+              <input id="aSlider" type="range" min="-3" max="3" step="0.05" value="2">
+            </label>
+            <label>
+              <span>b = A12 = <strong class="value" id="bValue">1.00</strong></span>
+              <input id="bSlider" type="range" min="-3" max="3" step="0.05" value="1">
+            </label>
+            <label>
+              <span>c = A21 = <strong class="value" id="cValue">1.00</strong></span>
+              <input id="cSlider" type="range" min="-3" max="3" step="0.05" value="1">
+            </label>
+            <label>
+              <span>d = A22 = <strong class="value" id="dValue">2.00</strong></span>
+              <input id="dSlider" type="range" min="-3" max="3" step="0.05" value="2">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>输入向量 v</h3>
+            <label>
+              <span>x = <strong class="value" id="xValue">1.00</strong></span>
+              <input id="xSlider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+            <label>
+              <span>y = <strong class="value" id="yValue">0.40</strong></span>
+              <input id="ySlider" type="range" min="-4" max="4" step="0.05" value="0.4">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>特征方程参数</h3>
+            <label>
+              <span>λ = <strong class="value" id="lambdaValue">1.00</strong></span>
+              <input id="lambdaSlider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+            <label>
+              <span>反复应用步数 = <strong class="value" id="stepValue">5</strong></span>
+              <input id="stepSlider" type="range" min="0" max="10" step="1" value="5">
+            </label>
+            <p class="mini-note">在“3 特征方程”中看 <code>det(A-λI)</code>；在“4 反复应用”中看方向是否靠近主特征方向。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>典型矩阵</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="symmetric">对称拉伸</button>
+              <button type="button" data-preset="diagonal">坐标轴缩放</button>
+              <button type="button" data-preset="shear">剪切</button>
+              <button type="button" data-preset="reflection">翻转</button>
+              <button type="button" data-preset="projection">投影</button>
+              <button type="button" data-preset="rotation">旋转 90°</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>当前计算</h3>
+            <div class="readout" id="readout"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 特征向量是什么</h3>
+          <p>矩阵通常会同时改变向量的长度和方向。特征向量是例外：它被矩阵作用后仍然在原来那条直线上。</p>
+          <pre class="formula">Av = λv, v != 0</pre>
+          <p>这里 <code>v</code> 是 eigenvector，<code>λ</code> 是 eigenvalue。<code>v</code> 不能是零向量，因为零向量没有方向。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 特征值表示什么</h3>
+          <p><code>λ</code> 是沿特征方向的缩放倍数。</p>
+          <ul>
+            <li><code>λ &gt; 1</code>：沿同方向拉长。</li>
+            <li><code>0 &lt; λ &lt; 1</code>：沿同方向压短。</li>
+            <li><code>λ &lt; 0</code>：反向，并按绝对值缩放。</li>
+            <li><code>λ = 0</code>：这个方向被压到零向量。</li>
+          </ul>
+        </article>
+
+        <article class="concept">
+          <h3>3. 为什么看 det(A-λI)</h3>
+          <p>把 <code>Av=λv</code> 移到同一边：</p>
+          <pre>(A - λI)v = 0</pre>
+          <p>要找到非零 <code>v</code>，矩阵 <code>A-λI</code> 必须把某个方向压成零，也就是不可逆：</p>
+          <pre class="formula">det(A - λI) = 0</pre>
+          <p>这就是特征方程。二维里它是一个二次方程。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 为什么有些矩阵没有真实特征方向</h3>
+          <p>纯旋转 <code>90°</code> 会把每个非零向量转到垂直方向。没有任何真实方向能保持在同一条直线上。</p>
+          <p>代数上，对应特征方程没有实根；如果扩展到复数，会出现复特征值，但二维实平面里看不到真实特征向量。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. 对角化为什么有用</h3>
+          <p>如果二维矩阵有两条独立特征方向，就可以把任意向量分解到这两条方向上。矩阵作用时，每个分量只按自己的特征值缩放。</p>
+          <pre>A = P D P^-1</pre>
+          <p><code>P</code> 的列是特征向量，<code>D</code> 的对角线是特征值。这样 <code>A^k</code> 的效果就容易理解：每个特征方向缩放 <code>λ^k</code>。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 和前几章的连接</h3>
+          <p>从矩阵变换看，特征向量是最稳定的方向。从线性方程组看，求特征向量是在求 <code>(A-λI)v=0</code> 的 null space。</p>
+          <p>这也解释了为什么本章依赖前面的概念：矩阵作为变换、行列式表示压扁、零空间表示被映到零的方向。</p>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>本章最重要的一句话：特征向量不是“特殊数字列表”，而是矩阵变换中不被转弯的方向；特征值是这个方向上的缩放倍率。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>少量练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么定义 <code>Av=λv</code> 时要求 <code>v != 0</code>？</li>
+          <li>如果一个矩阵是纯旋转 <code>90°</code>，为什么在实平面里没有特征向量？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>设 <code>A=[[3,0],[0,2]]</code>，判断 <code>[1,0]</code>、<code>[0,1]</code>、<code>[1,1]</code> 哪些是特征向量，并给出特征值。</li>
+          <li>设 <code>A=[[2,1],[1,2]]</code>，验证 <code>[1,1]</code> 和 <code>[1,-1]</code> 是特征向量。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>点击“对称拉伸”，切到“2 特征方向”，把橙色向量拖到蓝色或红色方向上，观察 <code>Av</code> 是否共线。</li>
+          <li>点击“旋转 90°”，观察页面如何提示“没有真实特征方向”。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>为什么反复应用矩阵时，主特征值绝对值较大的方向常常会逐渐“显出来”？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>零向量没有方向，而且任何 <code>λ</code> 都满足 <code>A0=λ0</code>，会让定义失去区分能力。</li>
+          <li>旋转 <code>90°</code> 会把每个非零向量变到垂直方向，不可能和原向量共线。</li>
+          <li><code>[1,0]</code> 是特征向量，特征值 <code>3</code>；<code>[0,1]</code> 是特征向量，特征值 <code>2</code>；<code>[1,1]</code> 不是，因为 <code>A[1,1]=[3,2]</code> 不与 <code>[1,1]</code> 共线。</li>
+          <li><code>A[1,1]=[3,3]=3[1,1]</code>；<code>A[1,-1]=[1,-1]=1[1,-1]</code>。</li>
+          <li>把初始向量分解到特征方向上后，每次应用矩阵都会把各分量乘以对应特征值。绝对值更大的特征值经过多次乘法增长更快，所以方向更明显。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“先找不转弯的方向，再写公式，再解释特征方程和反复应用”的顺序，避免一开始就把主题压成二次方程求根。</p>
+      <ul class="source-list">
+        <li>概念校准：特征值、特征向量与 <code>det(A-λI)=0</code> 的关系，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/lecture-21-eigenvalues-and-eigenvectors-1/">MIT OCW: Eigenvalues and Eigenvectors</a>。</li>
+        <li>直觉线索：从线性变换中“不改变方向的向量”理解特征向量，参考 <a href="https://www.3blue1brown.com/lessons/eigenvalues">3Blue1Brown: Eigenvectors and eigenvalues</a>。</li>
+        <li>应用路径：对角化和 <code>A^k</code> 如何利用特征方向简化反复应用，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/lecture-22-diagonalization-and-powers-of-a/">MIT OCW: Diagonalization and Powers of A</a>。</li>
+        <li>练习组织：从判断特征向量到求特征值，参考 <a href="https://www.khanacademy.org/math/linear-algebra/alternate-bases/eigen-everything">Khan Academy: Eigen-everything</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const sliders = {
+      a: document.getElementById("aSlider"),
+      b: document.getElementById("bSlider"),
+      c: document.getElementById("cSlider"),
+      d: document.getElementById("dSlider"),
+      x: document.getElementById("xSlider"),
+      y: document.getElementById("ySlider"),
+      lambda: document.getElementById("lambdaSlider"),
+      step: document.getElementById("stepSlider")
+    };
+
+    const values = {
+      a: document.getElementById("aValue"),
+      b: document.getElementById("bValue"),
+      c: document.getElementById("cValue"),
+      d: document.getElementById("dValue"),
+      x: document.getElementById("xValue"),
+      y: document.getElementById("yValue"),
+      lambda: document.getElementById("lambdaValue"),
+      step: document.getElementById("stepValue")
+    };
+
+    const readout = document.getElementById("readout");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusDetail = document.getElementById("statusDetail");
+    const angleDetail = document.getElementById("angleDetail");
+    const modeGuide = document.getElementById("modeGuide");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const presetButtons = document.querySelectorAll("[data-preset]");
+
+    const EPS = 0.0001;
+    const state = {
+      A: { a: 2, b: 1, c: 1, d: 2 },
+      input: { x: 1, y: 0.4 },
+      lambda: 1,
+      step: 5,
+      mode: "vector",
+      dragTarget: null,
+      scale: 54
+    };
+
+    const presets = {
+      symmetric: { A: { a: 2, b: 1, c: 1, d: 2 }, input: { x: 1, y: 0.4 }, lambda: 1 },
+      diagonal: { A: { a: 3, b: 0, c: 0, d: 1 }, input: { x: 1, y: 1 }, lambda: 3 },
+      shear: { A: { a: 1, b: 1, c: 0, d: 1 }, input: { x: 1, y: 0.8 }, lambda: 1 },
+      reflection: { A: { a: 1, b: 0, c: 0, d: -1 }, input: { x: 1, y: 1 }, lambda: -1 },
+      projection: { A: { a: 1, b: 0, c: 0, d: 0 }, input: { x: 1, y: 1 }, lambda: 0 },
+      rotation: { A: { a: 0, b: -1, c: 1, d: 0 }, input: { x: 1, y: 0.2 }, lambda: 0 }
+    };
+
+    const modeGuides = {
+      vector: {
+        title: "第 1 步：看是否被转弯",
+        body: "橙色 v 是输入，绿色 Av 是输出。若两者共线，A 只是沿这个方向缩放，v 就是特征向量。",
+        task: "任务：拖动橙色 v，让它和绿色 Av 尽量落在同一条直线上。"
+      },
+      eigenlines: {
+        title: "第 2 步：显示真实特征方向",
+        body: "蓝线和红线是实特征方向。方向是一整条线，所以同向和反向都表示同一个特征方向。",
+        task: "任务：切换“剪切”“投影”“旋转 90°”，比较特征方向数量。"
+      },
+      equation: {
+        title: "第 3 步：看特征方程",
+        body: "当 det(A-λI)=0 时，A-λI 会把某个非零方向压成零，说明 Av=λv 有非零解。",
+        task: "任务：拖动 λ，观察曲线在哪里穿过横轴。穿过点就是实特征值。"
+      },
+      iterate: {
+        title: "第 4 步：看反复应用",
+        body: "把向量反复送进 A，再归一化，只观察方向。很多矩阵会让方向逐渐靠近绝对值最大的特征值对应方向。",
+        task: "任务：调大步数，观察箭头序列是否靠近某条特征方向。"
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function origin() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function toScreen(vector) {
+      const o = origin();
+      return {
+        x: o.x + vector.x * state.scale,
+        y: o.y - vector.y * state.scale
+      };
+    }
+
+    function toWorld(point) {
+      const o = origin();
+      return {
+        x: (point.x - o.x) / state.scale,
+        y: (o.y - point.y) / state.scale
+      };
+    }
+
+    function pointerPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function matVec(M, v) {
+      return {
+        x: M.a * v.x + M.b * v.y,
+        y: M.c * v.x + M.d * v.y
+      };
+    }
+
+    function det(M) {
+      return M.a * M.d - M.b * M.c;
+    }
+
+    function trace(M) {
+      return M.a + M.d;
+    }
+
+    function add(u, v) {
+      return { x: u.x + v.x, y: u.y + v.y };
+    }
+
+    function sub(u, v) {
+      return { x: u.x - v.x, y: u.y - v.y };
+    }
+
+    function scaleVector(k, v) {
+      return { x: k * v.x, y: k * v.y };
+    }
+
+    function dot(u, v) {
+      return u.x * v.x + u.y * v.y;
+    }
+
+    function cross(u, v) {
+      return u.x * v.y - u.y * v.x;
+    }
+
+    function norm(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function normalize(v) {
+      const length = norm(v);
+      return length < EPS ? { x: 0, y: 0 } : { x: v.x / length, y: v.y / length };
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function characteristic(lambda) {
+      const A = state.A;
+      return (A.a - lambda) * (A.d - lambda) - A.b * A.c;
+    }
+
+    function eigenData() {
+      const A = state.A;
+      const tr = trace(A);
+      const determinant = det(A);
+      const discriminant = tr * tr - 4 * determinant;
+      const scalarMatrix = Math.abs(A.b) < EPS && Math.abs(A.c) < EPS && Math.abs(A.a - A.d) < EPS;
+
+      if (discriminant < -EPS) {
+        return { kind: "complex", tr, determinant, discriminant, values: [] };
+      }
+
+      if (Math.abs(discriminant) <= EPS) {
+        const lambda = tr / 2;
+        return {
+          kind: scalarMatrix ? "all" : "repeated",
+          tr,
+          determinant,
+          discriminant,
+          values: [{ lambda, vector: eigenvectorFor(lambda), repeated: true }]
+        };
+      }
+
+      const root = Math.sqrt(discriminant);
+      const lambda1 = (tr + root) / 2;
+      const lambda2 = (tr - root) / 2;
+      return {
+        kind: "two",
+        tr,
+        determinant,
+        discriminant,
+        values: [
+          { lambda: lambda1, vector: eigenvectorFor(lambda1), repeated: false },
+          { lambda: lambda2, vector: eigenvectorFor(lambda2), repeated: false }
+        ]
+      };
+    }
+
+    function eigenvectorFor(lambda) {
+      const A = state.A;
+      const row1 = { x: A.a - lambda, y: A.b };
+      const row2 = { x: A.c, y: A.d - lambda };
+      const n1 = norm(row1);
+      const n2 = norm(row2);
+
+      if (n1 < EPS && n2 < EPS) {
+        return { x: 1, y: 0, allDirections: true };
+      }
+
+      const row = n1 >= n2 ? row1 : row2;
+      const vector = { x: -row.y, y: row.x };
+      const unit = normalize(vector);
+      if (norm(unit) < EPS) {
+        return { x: 1, y: 0 };
+      }
+      return unit;
+    }
+
+    function vectorAnalysis() {
+      const v = state.input;
+      const Av = matVec(state.A, v);
+      const vNorm = norm(v);
+      const avNorm = norm(Av);
+
+      if (vNorm < EPS) {
+        return { valid: false, Av, lambda: 0, angle: 0, residual: 0, aligned: false };
+      }
+
+      const lambda = dot(Av, v) / dot(v, v);
+      const residualVector = sub(Av, scaleVector(lambda, v));
+      const residual = norm(residualVector);
+      let angle = 0;
+      if (avNorm >= EPS) {
+        const ratio = clamp(Math.abs(cross(v, Av)) / (vNorm * avNorm), 0, 1);
+        angle = Math.asin(ratio) * 180 / Math.PI;
+      }
+
+      return {
+        valid: true,
+        Av,
+        lambda,
+        angle,
+        residual,
+        aligned: residual < 0.05 || angle < 1.5
+      };
+    }
+
+    function drawBaseGrid() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const o = origin();
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = getCss("--grid");
+
+      for (let x = o.x % state.scale; x <= width; x += state.scale) {
+        lineScreen({ x, y: 0 }, { x, y: height });
+      }
+      for (let y = o.y % state.scale; y <= height; y += state.scale) {
+        lineScreen({ x: 0, y }, { x: width, y });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.5;
+      lineScreen({ x: 0, y: o.y }, { x: width, y: o.y });
+      lineScreen({ x: o.x, y: 0 }, { x: o.x, y: height });
+
+      ctx.fillStyle = getCss("--axis");
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      for (let i = -6; i <= 6; i += 1) {
+        if (i !== 0) {
+          const xPoint = toScreen({ x: i, y: 0 });
+          const yPoint = toScreen({ x: 0, y: i });
+          ctx.fillText(String(i), xPoint.x - 4, o.y + 16);
+          ctx.fillText(String(i), o.x + 8, yPoint.y + 4);
+        }
+      }
+    }
+
+    function drawTransformedGrid(M, color, alpha = 0.62) {
+      const span = 7;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.1;
+
+      for (let k = -span; k <= span; k += 1) {
+        lineScreen(toScreen(matVec(M, { x: k, y: -span })), toScreen(matVec(M, { x: k, y: span })));
+        lineScreen(toScreen(matVec(M, { x: -span, y: k })), toScreen(matVec(M, { x: span, y: k })));
+      }
+
+      ctx.globalAlpha = Math.min(1, alpha + 0.18);
+      ctx.lineWidth = 2;
+      lineScreen(toScreen(matVec(M, { x: -span, y: 0 })), toScreen(matVec(M, { x: span, y: 0 })));
+      lineScreen(toScreen(matVec(M, { x: 0, y: -span })), toScreen(matVec(M, { x: 0, y: span })));
+      ctx.restore();
+    }
+
+    function drawUnitSquareImage(M) {
+      const points = [
+        matVec(M, { x: 0, y: 0 }),
+        matVec(M, { x: 1, y: 0 }),
+        matVec(M, { x: 1, y: 1 }),
+        matVec(M, { x: 0, y: 1 })
+      ].map(toScreen);
+      ctx.save();
+      ctx.fillStyle = getCss("--blue-soft");
+      ctx.strokeStyle = getCss("--violet");
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawVectorScene(showEigenlines = false) {
+      const analysis = vectorAnalysis();
+      drawTransformedGrid(state.A, getCss("--cyan"));
+      drawUnitSquareImage(state.A);
+
+      if (showEigenlines) {
+        drawEigenlines();
+      }
+
+      if (analysis.valid) {
+        drawLineThrough(state.input, "rgba(217, 119, 6, 0.35)", "v 所在直线");
+        drawVector(state.input, getCss("--amber"), "v", 3.5);
+        drawVector(analysis.Av, getCss("--green"), "Av", 4);
+        drawVector(scaleVector(analysis.lambda, state.input), getCss("--violet"), "λv", 2.5, { x: 0, y: 0 }, true);
+      } else {
+        drawVector(state.input, getCss("--amber"), "v=0", 3.5);
+      }
+    }
+
+    function drawEigenlines() {
+      const data = eigenData();
+      if (data.kind === "complex") {
+        drawLabel("没有真实特征方向", 22, 34, getCss("--red"));
+        return;
+      }
+
+      if (data.kind === "all") {
+        drawLabel("A 是标量缩放：每个方向都是特征方向", 22, 34, getCss("--blue"));
+        return;
+      }
+
+      data.values.forEach((entry, index) => {
+        const color = index === 0 ? getCss("--blue") : getCss("--red");
+        const label = `λ${index + 1}=${fmt(entry.lambda)}`;
+        drawLineThrough(entry.vector, color, label, 2.8);
+        drawVector(scaleVector(1.4, entry.vector), color, label, 3);
+      });
+    }
+
+    function drawEquationView() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const left = 70;
+      const right = width - 36;
+      const top = 54;
+      const bottom = height - 84;
+      const xMin = -4;
+      const xMax = 4;
+      const samples = [];
+      let yMin = Infinity;
+      let yMax = -Infinity;
+
+      for (let i = 0; i <= 240; i += 1) {
+        const lambda = xMin + (xMax - xMin) * i / 240;
+        const y = characteristic(lambda);
+        samples.push({ x: lambda, y });
+        yMin = Math.min(yMin, y);
+        yMax = Math.max(yMax, y);
+      }
+
+      yMin = Math.min(yMin, 0, -1);
+      yMax = Math.max(yMax, 0, 1);
+      const pad = (yMax - yMin) * 0.12;
+      yMin -= pad;
+      yMax += pad;
+
+      function px(lambda) {
+        return left + (lambda - xMin) / (xMax - xMin) * (right - left);
+      }
+
+      function py(value) {
+        return bottom - (value - yMin) / (yMax - yMin) * (bottom - top);
+      }
+
+      ctx.save();
+      ctx.strokeStyle = getCss("--grid");
+      ctx.lineWidth = 1;
+      for (let lambda = -4; lambda <= 4; lambda += 1) {
+        lineScreen({ x: px(lambda), y: top }, { x: px(lambda), y: bottom });
+      }
+      const yStep = niceStep((yMax - yMin) / 6);
+      for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+        lineScreen({ x: left, y: py(y) }, { x: right, y: py(y) });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.6;
+      lineScreen({ x: left, y: py(0) }, { x: right, y: py(0) });
+      lineScreen({ x: px(0), y: top }, { x: px(0), y: bottom });
+
+      ctx.strokeStyle = getCss("--green");
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      samples.forEach((point, index) => {
+        const x = px(point.x);
+        const y = py(point.y);
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      const lambdaX = px(state.lambda);
+      ctx.strokeStyle = getCss("--amber");
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 6]);
+      lineScreen({ x: lambdaX, y: top }, { x: lambdaX, y: bottom });
+      ctx.setLineDash([]);
+      ctx.fillStyle = getCss("--amber");
+      ctx.beginPath();
+      ctx.arc(lambdaX, py(characteristic(state.lambda)), 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      const data = eigenData();
+      data.values.forEach((entry, index) => {
+        const color = index === 0 ? getCss("--blue") : getCss("--red");
+        const x = px(entry.lambda);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, py(0), 7, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(`λ=${fmt(entry.lambda)}`, x + 8, py(0) - 10, color);
+      });
+
+      drawLabel("p(λ)=det(A-λI)", left, top - 18, getCss("--green"));
+      drawLabel(`当前 det(A-λI)=${fmt(characteristic(state.lambda))}`, left, bottom + 34, getCss("--amber"));
+      ctx.restore();
+    }
+
+    function drawIterationView() {
+      const data = eigenData();
+      drawTransformedGrid(state.A, getCss("--cyan"), 0.36);
+      drawEigenlines();
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(92, 102, 122, 0.45)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const center = toScreen({ x: 0, y: 0 });
+      ctx.arc(center.x, center.y, state.scale, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      let current = normalize(state.input);
+      if (norm(current) < EPS) {
+        current = { x: 1, y: 0 };
+      }
+
+      const points = [current];
+      for (let i = 0; i < state.step; i += 1) {
+        const next = matVec(state.A, current);
+        if (norm(next) < EPS) {
+          points.push({ x: 0, y: 0 });
+          break;
+        }
+        current = normalize(next);
+        points.push(current);
+      }
+
+      ctx.save();
+      ctx.strokeStyle = getCss("--amber");
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      points.forEach((point, index) => {
+        const screen = toScreen(point);
+        if (index === 0) {
+          ctx.moveTo(screen.x, screen.y);
+        } else {
+          ctx.lineTo(screen.x, screen.y);
+        }
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      points.forEach((point, index) => {
+        const color = index === 0 ? getCss("--amber") : getCss("--green");
+        drawVector(point, color, index === 0 ? "v0" : `v${index}`, index === points.length - 1 ? 4 : 2.2);
+      });
+
+      if (data.kind === "complex") {
+        drawLabel("纯旋转类矩阵通常不会收敛到真实特征方向", 22, 34, getCss("--red"));
+      }
+    }
+
+    function draw() {
+      drawBaseGrid();
+      if (state.mode === "equation") {
+        drawEquationView();
+      } else if (state.mode === "iterate") {
+        drawIterationView();
+      } else if (state.mode === "eigenlines") {
+        drawVectorScene(true);
+      } else {
+        drawVectorScene(false);
+      }
+      updateUi();
+    }
+
+    function drawLineThrough(direction, color, label, width = 2.2) {
+      const unit = normalize(direction);
+      if (norm(unit) < EPS) {
+        return;
+      }
+      const start = toScreen(scaleVector(-8, unit));
+      const end = toScreen(scaleVector(8, unit));
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash([9, 7]);
+      lineScreen(start, end);
+      ctx.setLineDash([]);
+      const labelPoint = toScreen(scaleVector(2.15, unit));
+      drawLabel(label, labelPoint.x + 8, labelPoint.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(label, end.x + 8, end.y - 8, color);
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      drawLabel(label, end.x + 8, end.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawLabel(text, x, y, color) {
+      ctx.save();
+      ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+      const metrics = ctx.measureText(text);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(x - 3, y - 14, metrics.width + 6, 18);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function updateUi() {
+      syncControls();
+      renderModeGuide();
+      updateStatus();
+      updateReadout();
+    }
+
+    function syncControls() {
+      sliders.a.value = String(state.A.a);
+      sliders.b.value = String(state.A.b);
+      sliders.c.value = String(state.A.c);
+      sliders.d.value = String(state.A.d);
+      sliders.x.value = String(state.input.x);
+      sliders.y.value = String(state.input.y);
+      sliders.lambda.value = String(state.lambda);
+      sliders.step.value = String(state.step);
+
+      values.a.textContent = fmt(state.A.a);
+      values.b.textContent = fmt(state.A.b);
+      values.c.textContent = fmt(state.A.c);
+      values.d.textContent = fmt(state.A.d);
+      values.x.textContent = fmt(state.input.x);
+      values.y.textContent = fmt(state.input.y);
+      values.lambda.textContent = fmt(state.lambda);
+      values.step.textContent = String(state.step);
+
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === state.mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus() {
+      const data = eigenData();
+      const analysis = vectorAnalysis();
+      if (data.kind === "complex") {
+        statusTitle.textContent = "当前矩阵没有真实特征方向";
+        statusDetail.textContent = `判别式 Δ=${fmt(data.discriminant)} 小于 0；实平面里没有非零向量满足 Av=λv。`;
+      } else if (data.kind === "all") {
+        statusTitle.textContent = "每个方向都是特征方向";
+        statusDetail.textContent = `A 等于 ${fmt(data.values[0].lambda)}I，任何非零向量都只会被统一缩放。`;
+      } else if (data.kind === "repeated") {
+        statusTitle.textContent = "存在重复特征值";
+        statusDetail.textContent = `λ=${fmt(data.values[0].lambda)}。可能只有一条特征方向，也可能所有方向都是特征方向。`;
+      } else {
+        statusTitle.textContent = "当前矩阵有两条真实特征方向";
+        statusDetail.textContent = `λ1=${fmt(data.values[0].lambda)}，λ2=${fmt(data.values[1].lambda)}。`;
+      }
+
+      if (!analysis.valid) {
+        angleDetail.textContent = "当前 v 是零向量，不能作为特征向量。";
+      } else if (analysis.aligned) {
+        angleDetail.textContent = `当前 v 几乎是特征方向，估计 λ≈${fmt(analysis.lambda)}，偏离量 ${fmt(analysis.residual)}。`;
+      } else {
+        angleDetail.textContent = `当前 v 会被转弯，v 与 Av 的夹角约 ${fmt(analysis.angle)}°，估计 λ≈${fmt(analysis.lambda)}。`;
+      }
+    }
+
+    function updateReadout() {
+      const A = state.A;
+      const data = eigenData();
+      const analysis = vectorAnalysis();
+      const lines = [
+        `A = [[${fmt(A.a)}, ${fmt(A.b)}],`,
+        `     [${fmt(A.c)}, ${fmt(A.d)}]]`,
+        `trace(A) = ${fmt(data.tr)}`,
+        `det(A) = ${fmt(data.determinant)}`,
+        `p(λ)=λ^2 - ${fmt(data.tr)}λ + ${fmt(data.determinant)}`,
+        `det(A-${fmt(state.lambda)}I) = ${fmt(characteristic(state.lambda))}`,
+        `v = [${fmt(state.input.x)}, ${fmt(state.input.y)}]`,
+        `Av = [${fmt(analysis.Av.x)}, ${fmt(analysis.Av.y)}]`
+      ];
+
+      if (analysis.valid) {
+        lines.push(`沿 v 的最佳缩放 λ≈${fmt(analysis.lambda)}`);
+        lines.push(`Av - λv 的长度 = ${fmt(analysis.residual)}`);
+      }
+
+      if (data.kind === "complex") {
+        lines.push("实特征值：无");
+      } else if (data.kind === "all") {
+        lines.push(`实特征值：λ=${fmt(data.values[0].lambda)}，所有非零方向都是特征方向`);
+      } else {
+        data.values.forEach((entry, index) => {
+          lines.push(`λ${index + 1}=${fmt(entry.lambda)}, v${index + 1}≈[${fmt(entry.vector.x)}, ${fmt(entry.vector.y)}]`);
+        });
+      }
+
+      if (state.mode === "iterate") {
+        lines.push(`反复应用步数 = ${state.step}`);
+      }
+
+      readout.innerHTML = lines.join("<br>");
+    }
+
+    function activateMode(mode) {
+      state.mode = mode;
+      draw();
+    }
+
+    function bindSlider(name, update) {
+      ["input", "change"].forEach((eventName) => {
+        sliders[name].addEventListener(eventName, () => {
+          update(Number(sliders[name].value));
+          draw();
+        });
+      });
+    }
+
+    bindSlider("a", (value) => {
+      state.A.a = value;
+    });
+    bindSlider("b", (value) => {
+      state.A.b = value;
+    });
+    bindSlider("c", (value) => {
+      state.A.c = value;
+    });
+    bindSlider("d", (value) => {
+      state.A.d = value;
+    });
+    bindSlider("x", (value) => {
+      state.input.x = value;
+    });
+    bindSlider("y", (value) => {
+      state.input.y = value;
+    });
+    bindSlider("lambda", (value) => {
+      state.lambda = value;
+    });
+    bindSlider("step", (value) => {
+      state.step = value;
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const preset = presets[button.dataset.preset];
+        state.A = { ...preset.A };
+        state.input = { ...preset.input };
+        state.lambda = preset.lambda;
+        draw();
+      });
+    });
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (state.mode === "equation") {
+        return;
+      }
+      const point = pointerPoint(event);
+      const inputPoint = toScreen(state.input);
+      if (distance(point, inputPoint) < 24) {
+        state.dragTarget = "input";
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.dragTarget) {
+        return;
+      }
+      const world = toWorld(pointerPoint(event));
+      state.input = {
+        x: clamp(world.x, -4, 4),
+        y: clamp(world.y, -4, 4)
+      };
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      state.dragTarget = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      state.dragTarget = null;
+    });
+
+    function niceStep(raw) {
+      const exponent = Math.floor(Math.log10(Math.max(raw, EPS)));
+      const base = raw / Math.pow(10, exponent);
+      const niceBase = base <= 1 ? 1 : base <= 2 ? 2 : base <= 5 ? 5 : 10;
+      return niceBase * Math.pow(10, exponent);
+    }
+
+    function getCss(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmt(value) {
+      const fixed = Number(value).toFixed(2);
+      return fixed === "-0.00" ? "0.00" : fixed;
+    }
+
+    function distance(p, q) {
+      return Math.hypot(p.x - q.x, p.y - q.y);
+    }
+
+    function lineScreen(start, end) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>
