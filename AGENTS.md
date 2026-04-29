@@ -121,9 +121,9 @@ topics/
 
 1. 图像压缩：`topics/09-applications/01-image-compression/`。
 2. PageRank：`topics/09-applications/02-pagerank/`。
-3. 线性回归。
-4. PCA 降维。
-5. 推荐系统中的矩阵分解。
+3. 线性回归：`topics/09-applications/03-linear-regression/`。
+4. PCA 降维：`topics/09-applications/04-pca-dimensionality-reduction/`。
+5. 推荐系统中的矩阵分解：`topics/09-applications/05-recommender-matrix-factorization/`。
 
 ## 变更约定
 

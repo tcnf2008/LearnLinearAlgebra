@@ -167,8 +167,9 @@ python3 -m venv .venv
 
 - 图像压缩：`topics/09-applications/01-image-compression/`
 - PageRank：`topics/09-applications/02-pagerank/`
-- 推荐系统中的矩阵分解
-- 线性回归
+- 线性回归：`topics/09-applications/03-linear-regression/`
+- PCA 降维：`topics/09-applications/04-pca-dimensionality-reduction/`
+- 推荐系统中的矩阵分解：`topics/09-applications/05-recommender-matrix-factorization/`
 - 神经网络中的矩阵运算基础
 
 已实现专题：
@@ -177,6 +178,12 @@ python3 -m venv .venv
 - `01-image-compression/demo.py`：用 `numpy.linalg.svd` 生成不同 rank 的重建图和误差统计。
 - `02-pagerank/index.html`：把网页链接图转成随机转移矩阵，展示阻尼因子、幂迭代和稳定排名向量。
 - `02-pagerank/demo.py`：用 `numpy` 计算不同阻尼因子的 PageRank，并画出排序和收敛曲线。
+- `03-linear-regression/index.html`：把一元线性回归写成 `Xθ≈y`，展示残差平方、损失地形、正规方程和投影正交条件。
+- `03-linear-regression/demo.py`：比较正规方程、`numpy.linalg.lstsq` 和梯度下降的回归参数与误差。
+- `04-pca-dimensionality-reduction/index.html`：把三维点云降到一维或二维，展示主成分、解释方差、投影坐标和重建误差。
+- `04-pca-dimensionality-reduction/demo.py`：用协方差特征分解计算 PCA，并比较不同保留维度的解释方差和 RMSE。
+- `05-recommender-matrix-factorization/index.html`：把稀疏评分矩阵分解成用户因子和物品因子，展示 ALS、正则化、评分补全和推荐排序。
+- `05-recommender-matrix-factorization/demo.py`：用 `numpy` 实现小型 ALS 矩阵分解，并输出观测 RMSE、预测矩阵和推荐结果。
 
 ## 每个知识点的推荐文件
 

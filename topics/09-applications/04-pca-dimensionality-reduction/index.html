@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>09. 应用专题：PCA 降维</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --border: #d8deea;
+      --grid: #d8deea;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --cyan: #0891b2;
+      --violet: #7c3aed;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --red-soft: rgba(225, 29, 72, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      color: #243047;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    pre {
+      margin: 10px 0 12px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: #f1f5f9;
+      color: #243047;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .lead {
+      max-width: 940px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .canvas-panel,
+    .spectrum-panel,
+    .matrix-panel {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .canvas-panel canvas,
+    .spectrum-panel canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+
+    .canvas-caption {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .caption-item {
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .caption-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(310px, 0.85fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .spectrum-panel,
+    .matrix-panel {
+      padding: 14px;
+    }
+
+    .spectrum-panel h3,
+    .matrix-panel h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .spectrum-panel p,
+    .matrix-panel p {
+      font-size: 14px;
+    }
+
+    .matrix-readout {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .readout-row {
+      display: grid;
+      grid-template-columns: 105px 1fr;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .readout-row strong {
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .control-section {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .control-section h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-right: 6px;
+      vertical-align: -3px;
+      accent-color: var(--blue);
+    }
+
+    .value {
+      color: var(--ink);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    button.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    .status-card {
+      padding: 12px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .status-card p {
+      margin: 0 0 8px;
+      color: #293449;
+    }
+
+    .status-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-title {
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin: 8px 0 0;
+      font-size: 13px;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      background: #f0fdf4;
+    }
+
+    .callout p {
+      margin: 0;
+      color: #244033;
+      font-weight: 700;
+    }
+
+    .exercise-block {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    li {
+      margin: 7px 0;
+    }
+
+    details {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    summary {
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .source-list {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 1000px) {
+      .workspace,
+      .analysis-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .learning-path {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .learning-path,
+      .concept-grid,
+      .canvas-caption {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>09. 应用专题：PCA 降维</h1>
+      <p class="lead">PCA 降维把高维数据重新换一组正交坐标：第一条坐标轴解释最大方差，第二条解释剩下的最大方差。保留前几个主成分，就能用更少坐标近似原始数据。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本专题要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>三维甚至更高维数据能不能压成一两个坐标，同时尽量保留原来的主要差异？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>中心化：</strong>先减去每个特征的均值，让 PCA 研究“围绕中心如何展开”。</li>
+        <li><strong>协方差：</strong>用 <code>Cov=X_c^T X_c/(n-1)</code> 描述不同特征如何共同变化。</li>
+        <li><strong>主成分：</strong>协方差矩阵的特征向量给出新的正交坐标轴。</li>
+        <li><strong>解释方差：</strong>特征值越大，说明沿该方向的数据变化越强。</li>
+        <li><strong>降维：</strong>只保留前 <code>k</code> 个主成分，把样本投影到低维坐标。</li>
+        <li><strong>重建误差：</strong>被舍弃的主成分对应丢失的信息，表现为投影回原空间后的误差。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：三维点云压到一维或二维</h2>
+      <p>左侧是三维点云和 PCA 主轴，右侧是降维后的主成分坐标。绿色点表示用前 <code>k</code> 个主成分重建后的点，灰线表示原始点到重建点的误差。</p>
+
+      <div class="workspace">
+        <div>
+          <div class="canvas-panel">
+            <canvas id="pcaCanvas" width="820" height="540" aria-label="PCA 三维点云和降维投影"></canvas>
+            <div class="canvas-caption" aria-live="polite">
+              <div class="caption-item">
+                <span>解释方差</span>
+                <strong id="varianceMetric">-</strong>
+              </div>
+              <div class="caption-item">
+                <span>重建 RMSE</span>
+                <strong id="rmseMetric">-</strong>
+              </div>
+              <div class="caption-item">
+                <span>PC1 方差占比</span>
+                <strong id="pc1Metric">-</strong>
+              </div>
+              <div class="caption-item">
+                <span>当前维度</span>
+                <strong id="dimensionMetric">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="analysis-grid">
+            <div class="spectrum-panel">
+              <h3>解释方差谱</h3>
+              <p>蓝色柱表示保留的主成分，灰色柱表示舍弃的主成分；绿色折线是累计解释方差。</p>
+              <canvas id="spectrumCanvas" width="520" height="320" aria-label="PCA 解释方差谱"></canvas>
+            </div>
+
+            <div class="matrix-panel">
+              <h3>矩阵读数</h3>
+              <p>主成分是协方差矩阵的特征向量。标准化打开时，PCA 在标准化坐标中计算。</p>
+              <div class="matrix-readout" id="matrixReadout"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle">等待计算</p>
+              <p id="statusDetail"></p>
+              <p id="scaleDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>降维参数</h3>
+            <label>
+              <span>保留主成分 k = <strong class="value" id="componentValue">2</strong></span>
+              <input id="componentSlider" type="range" min="1" max="3" step="1" value="2">
+            </label>
+            <label>
+              <span>噪声强度 = <strong class="value" id="noiseValue">0.18</strong></span>
+              <input id="noiseSlider" type="range" min="0" max="0.70" step="0.01" value="0.18">
+            </label>
+            <label>
+              <span>样本数 n = <strong class="value" id="sampleValue">80</strong></span>
+              <input id="sampleSlider" type="range" min="30" max="160" step="5" value="80">
+            </label>
+            <label>
+              <input id="standardizeCheckbox" type="checkbox">
+              <span>先标准化每个特征</span>
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>数据形状</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="plane" class="active">二维平面</button>
+              <button type="button" data-preset="line">一维主线</button>
+              <button type="button" data-preset="clusters">群组差异</button>
+              <button type="button" data-preset="scaled">尺度不一</button>
+            </div>
+            <p class="mini-note">“尺度不一”适合打开标准化，观察 PCA 轴如何从大尺度特征转向相关结构。</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. PCA 降维是什么</h3>
+          <p>PCA 的目标不是任意删掉几个特征，而是重新构造一组正交坐标轴，让前几个坐标尽可能保留数据变化。</p>
+          <pre>高维样本 -> 主成分坐标 -> 保留前 k 个坐标</pre>
+          <p>如果数据本来接近一条线或一个平面，PCA 常常能用一维或二维坐标保留大部分结构。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 为什么必须中心化</h3>
+          <p>PCA 研究的是样本相对均值的变化方向。中心化把每个特征减去均值：</p>
+          <pre>X_c = X - mean(X)</pre>
+          <p>如果不中心化，第一主成分可能被数据整体离原点的位置主导，而不是被样本之间的差异主导。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 协方差矩阵在说什么</h3>
+          <p>协方差矩阵记录特征的共同变化：</p>
+          <pre>Cov = X_c^T X_c / (n - 1)</pre>
+          <p>对角线是每个特征自己的方差，非对角线是两个特征是否同向变化。PCA 就是在这个矩阵里找最大变化方向。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 主成分为什么是特征向量</h3>
+          <p>沿单位方向 <code>v</code> 投影后的方差是 <code>v^T Cov v</code>。要找方差最大的单位方向，会得到特征向量问题：</p>
+          <pre>Cov v_i = λ_i v_i</pre>
+          <p><code>λ_i</code> 是沿第 <code>i</code> 个主成分的方差，按从大到小排序。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. 降维和重建</h3>
+          <p>保留前 <code>k</code> 个主成分矩阵 <code>V_k</code> 后，低维坐标和重建为：</p>
+          <pre>Z = X_c V_k
+X_hat = Z V_k^T + mean(X)</pre>
+          <p>如果舍弃的特征值很小，重建误差也会较小；如果舍弃方向仍有重要结构，降维就会丢信息。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 标准化什么时候重要</h3>
+          <p>PCA 对特征尺度敏感。一个单位很大的特征会产生很大的方差，从而主导第一主成分。</p>
+          <p>如果特征单位不同，比如收入、年龄、点击次数混在一起，通常先标准化；如果单位相同且方差大小本身有意义，则不一定要标准化。</p>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>一句话总结：PCA 通过协方差矩阵找到数据最主要的正交变化方向，降维就是保留前几个方向并舍弃弱方向。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>PCA 为什么要先中心化？中心化改变的是坐标原点还是样本之间的相对位置？</li>
+          <li>为什么 PCA 保留的是方差最大的方向，而不是和某个标签最相关的方向？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>协方差矩阵是 <code>[[9,0],[0,1]]</code>。第一主成分方向是什么？保留 1 维时解释方差比例是多少？</li>
+          <li>某三维数据的特征值为 <code>[6,3,1]</code>。保留前 2 个主成分时，解释方差比例是多少？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>选择“一维主线”，把 <code>k</code> 从 1 调到 2，观察解释方差和重建 RMSE 的变化。</li>
+          <li>选择“二维平面”，比较 <code>k=1</code> 和 <code>k=2</code> 的投影图，解释为什么二维更合适。</li>
+          <li>选择“尺度不一”，分别关闭和打开标准化，观察第一主成分方向和解释方差是否变化。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>程序题</h3>
+        <ol>
+          <li>运行 <code>.venv/bin/python topics/09-applications/04-pca-dimensionality-reduction/demo.py</code>，查看 PCA 低维坐标、重建误差和解释方差曲线。</li>
+          <li>把脚本中的 <code>component_counts</code> 改成 <code>[1, 2]</code>，比较两种压缩维度的重建效果。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>如果一个低方差方向恰好对分类非常关键，PCA 会保留它还是舍弃它？这说明 PCA 适合什么、不适合什么？</li>
+          <li>PCA 降维和 SVD 图像压缩有什么共同点？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>中心化移动坐标原点到样本均值，不改变样本之间的相对距离；它让 PCA 研究数据如何围绕中心展开。</li>
+          <li>PCA 是无监督方法，只看输入特征的方差结构，不看标签；最大方差方向不一定最有预测价值。</li>
+          <li>第一主成分是 x 轴方向；保留 1 维解释方差比例为 <code>9/(9+1)=90%</code>。</li>
+          <li>解释方差比例为 <code>(6+3)/(6+3+1)=90%</code>。</li>
+          <li>低方差但关键的分类方向可能被 PCA 舍弃；PCA 适合压缩、去噪、可视化，不适合直接保证监督任务效果。</li>
+          <li>两者都在用少数正交方向近似原始矩阵；PCA 保留数据矩阵的主要方差方向，SVD 图像压缩保留像素矩阵的主要低秩结构。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“中心化 -> 协方差 -> 特征向量 -> 投影坐标 -> 重建误差”的顺序，让 PCA 先成为一个可观察的降维任务，再解释其矩阵本质。</p>
+      <ul class="source-list">
+        <li>概念校准：PCA、协方差和 SVD 的关系，参考 <a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/resources/lecture-6-singular-value-decomposition-svd/">MIT OCW 18.065: Singular Value Decomposition</a>。</li>
+        <li>建模路径：PCA 作为无监督降维方法及其方差最大化解释，参考 <a href="https://cs229.stanford.edu/main_notes.pdf">Stanford CS229 Lecture Notes</a>。</li>
+        <li>程序实现：Python demo 的解释方差和投影流程对齐 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html">scikit-learn PCA documentation</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      preset: "plane",
+      components: 2,
+      noise: 0.18,
+      sampleCount: 80,
+      standardize: false,
+      points: [],
+      analysis: null
+    };
+
+    const pcaCanvas = document.getElementById("pcaCanvas");
+    const spectrumCanvas = document.getElementById("spectrumCanvas");
+    const componentSlider = document.getElementById("componentSlider");
+    const noiseSlider = document.getElementById("noiseSlider");
+    const sampleSlider = document.getElementById("sampleSlider");
+    const standardizeCheckbox = document.getElementById("standardizeCheckbox");
+    const componentValue = document.getElementById("componentValue");
+    const noiseValue = document.getElementById("noiseValue");
+    const sampleValue = document.getElementById("sampleValue");
+    const matrixReadout = document.getElementById("matrixReadout");
+
+    const metrics = {
+      variance: document.getElementById("varianceMetric"),
+      rmse: document.getElementById("rmseMetric"),
+      pc1: document.getElementById("pc1Metric"),
+      dimension: document.getElementById("dimensionMetric"),
+      title: document.getElementById("statusTitle"),
+      detail: document.getElementById("statusDetail"),
+      scale: document.getElementById("scaleDetail")
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function fmt(value, digits = 3) {
+      return Number.isFinite(value) ? value.toFixed(digits) : "-";
+    }
+
+    function seededNoise(index, salt = 1) {
+      const raw = Math.sin((index + 1) * 127.1 + salt * 311.7) * 43758.5453;
+      return raw - Math.floor(raw) - 0.5;
+    }
+
+    function generatePoints() {
+      const points = [];
+      const n = state.sampleCount;
+      for (let i = 0; i < n; i += 1) {
+        const t = n === 1 ? 0 : i / (n - 1);
+        const centered = t * 2 - 1;
+        let x;
+        let y;
+        let z;
+
+        if (state.preset === "line") {
+          const u = -2.5 + 5 * t;
+          x = u + state.noise * seededNoise(i, 1);
+          y = 0.82 * u + state.noise * seededNoise(i, 2);
+          z = -0.46 * u + state.noise * seededNoise(i, 3);
+        } else if (state.preset === "clusters") {
+          const cluster = i % 3;
+          const centers = [
+            [-1.5, -0.6, 0.8],
+            [1.4, -0.4, -0.7],
+            [0.2, 1.5, 0.3]
+          ];
+          const angle = i * 2.399;
+          x = centers[cluster][0] + 0.48 * Math.cos(angle) + state.noise * seededNoise(i, 4);
+          y = centers[cluster][1] + 0.42 * Math.sin(angle * 1.2) + state.noise * seededNoise(i, 5);
+          z = centers[cluster][2] + 0.36 * Math.cos(angle * 0.7) + state.noise * seededNoise(i, 6);
+        } else if (state.preset === "scaled") {
+          const u = -1.3 + 2.6 * t;
+          const v = Math.sin(3 * Math.PI * t);
+          x = 0.42 * u + 0.10 * v + state.noise * 0.28 * seededNoise(i, 7);
+          y = 1.15 * u - 0.20 * v + state.noise * 0.45 * seededNoise(i, 8);
+          z = 5.6 * (0.28 * u + 0.18 * v) + state.noise * 1.2 * seededNoise(i, 9);
+        } else {
+          const u = -2.2 + 4.4 * t;
+          const v = 1.55 * Math.sin(2.2 * Math.PI * t);
+          x = 1.02 * u + 0.28 * v + state.noise * seededNoise(i, 10);
+          y = 0.48 * u + 0.92 * v + state.noise * seededNoise(i, 11);
+          z = -0.38 * u + 0.65 * v + state.noise * seededNoise(i, 12);
+        }
+
+        points.push([x, y, z + 0.03 * centered]);
+      }
+      state.points = points;
+    }
+
+    function mean(values) {
+      const m = [0, 0, 0];
+      values.forEach((point) => {
+        for (let j = 0; j < 3; j += 1) {
+          m[j] += point[j];
+        }
+      });
+      return m.map((value) => value / values.length);
+    }
+
+    function std(values, m) {
+      const result = [0, 0, 0];
+      values.forEach((point) => {
+        for (let j = 0; j < 3; j += 1) {
+          result[j] += (point[j] - m[j]) ** 2;
+        }
+      });
+      return result.map((value) => Math.sqrt(value / Math.max(values.length - 1, 1)) || 1);
+    }
+
+    function dot(a, b) {
+      return a.reduce((sum, value, index) => sum + value * b[index], 0);
+    }
+
+    function add(a, b) {
+      return a.map((value, index) => value + b[index]);
+    }
+
+    function scale(vector, factor) {
+      return vector.map((value) => value * factor);
+    }
+
+    function norm(vector) {
+      return Math.sqrt(dot(vector, vector));
+    }
+
+    function normalize(vector) {
+      const length = norm(vector);
+      return length < 1e-12 ? [1, 0, 0] : vector.map((value) => value / length);
+    }
+
+    function matMul(A, B) {
+      const rows = A.length;
+      const cols = B[0].length;
+      const inner = B.length;
+      const result = Array.from({ length: rows }, () => Array(cols).fill(0));
+      for (let i = 0; i < rows; i += 1) {
+        for (let k = 0; k < inner; k += 1) {
+          for (let j = 0; j < cols; j += 1) {
+            result[i][j] += A[i][k] * B[k][j];
+          }
+        }
+      }
+      return result;
+    }
+
+    function transpose(A) {
+      return A[0].map((_, col) => A.map((row) => row[col]));
+    }
+
+    function covariance(processed) {
+      const cov = Array.from({ length: 3 }, () => Array(3).fill(0));
+      processed.forEach((point) => {
+        for (let i = 0; i < 3; i += 1) {
+          for (let j = 0; j < 3; j += 1) {
+            cov[i][j] += point[i] * point[j];
+          }
+        }
+      });
+      const denom = Math.max(processed.length - 1, 1);
+      return cov.map((row) => row.map((value) => value / denom));
+    }
+
+    function identity3() {
+      return [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    }
+
+    function jacobiEigenSymmetric(matrix) {
+      let A = matrix.map((row) => row.slice());
+      let V = identity3();
+
+      for (let iter = 0; iter < 80; iter += 1) {
+        let p = 0;
+        let q = 1;
+        let maxOff = Math.abs(A[0][1]);
+        [[0, 2], [1, 2]].forEach(([i, j]) => {
+          const value = Math.abs(A[i][j]);
+          if (value > maxOff) {
+            maxOff = value;
+            p = i;
+            q = j;
+          }
+        });
+
+        if (maxOff < 1e-10) {
+          break;
+        }
+
+        const angle = 0.5 * Math.atan2(2 * A[p][q], A[q][q] - A[p][p]);
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        const J = identity3();
+        J[p][p] = c;
+        J[q][q] = c;
+        J[p][q] = s;
+        J[q][p] = -s;
+
+        A = matMul(matMul(transpose(J), A), J);
+        V = matMul(V, J);
+      }
+
+      const components = [0, 1, 2].map((index) => {
+        let vector = normalize([V[0][index], V[1][index], V[2][index]]);
+        const pivot = vector.find((value) => Math.abs(value) > 0.2);
+        if (pivot !== undefined && pivot < 0) {
+          vector = vector.map((value) => -value);
+        }
+        return { value: Math.max(A[index][index], 0), vector };
+      });
+
+      return components.sort((a, b) => b.value - a.value);
+    }
+
+    function analyze() {
+      const means = mean(state.points);
+      const stds = std(state.points, means);
+      const processed = state.points.map((point) => point.map((value, index) => (
+        state.standardize ? (value - means[index]) / stds[index] : value - means[index]
+      )));
+      const cov = covariance(processed);
+      const pcs = jacobiEigenSymmetric(cov);
+      const scores = processed.map((point) => pcs.map((pc) => dot(point, pc.vector)));
+      const k = state.components;
+      const reconstructedProcessed = scores.map((scoreRow) => {
+        let point = [0, 0, 0];
+        for (let pcIndex = 0; pcIndex < k; pcIndex += 1) {
+          point = add(point, scale(pcs[pcIndex].vector, scoreRow[pcIndex]));
+        }
+        return point;
+      });
+      const reconstructedOriginal = reconstructedProcessed.map((point) => point.map((value, index) => (
+        state.standardize ? value * stds[index] + means[index] : value + means[index]
+      )));
+
+      let squaredError = 0;
+      state.points.forEach((point, row) => {
+        for (let col = 0; col < 3; col += 1) {
+          const diff = point[col] - reconstructedOriginal[row][col];
+          squaredError += diff * diff;
+        }
+      });
+
+      const totalVariance = pcs.reduce((sum, pc) => sum + pc.value, 0);
+      const explained = pcs.slice(0, k).reduce((sum, pc) => sum + pc.value, 0) / Math.max(totalVariance, 1e-12);
+      state.analysis = {
+        means,
+        stds,
+        processed,
+        cov,
+        pcs,
+        scores,
+        reconstructedProcessed,
+        reconstructedOriginal,
+        rmse: Math.sqrt(squaredError / (state.points.length * 3)),
+        totalVariance,
+        explained
+      };
+    }
+
+    function project3D(point, origin, scaleFactor) {
+      return {
+        x: origin.x + scaleFactor * (0.88 * point[0] - 0.52 * point[1]),
+        y: origin.y + scaleFactor * (0.30 * point[0] + 0.20 * point[1] - 0.86 * point[2])
+      };
+    }
+
+    function pointRadius(score) {
+      return 4.2 + 0.8 * Math.min(Math.abs(score), 2);
+    }
+
+    function colorForDepth(value) {
+      const t = clamp((value + 2.4) / 4.8, 0, 1);
+      const r = Math.round(37 + 180 * t);
+      const g = Math.round(99 + 40 * t);
+      const b = Math.round(235 - 120 * t);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function drawArrow(context, from, to, color, label) {
+      context.strokeStyle = color;
+      context.fillStyle = color;
+      context.lineWidth = 3;
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.stroke();
+
+      const angle = Math.atan2(to.y - from.y, to.x - from.x);
+      context.beginPath();
+      context.moveTo(to.x, to.y);
+      context.lineTo(to.x - 11 * Math.cos(angle - Math.PI / 7), to.y - 11 * Math.sin(angle - Math.PI / 7));
+      context.lineTo(to.x - 11 * Math.cos(angle + Math.PI / 7), to.y - 11 * Math.sin(angle + Math.PI / 7));
+      context.closePath();
+      context.fill();
+
+      context.font = "bold 13px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.textAlign = "left";
+      context.textBaseline = "bottom";
+      context.fillText(label, to.x + 4, to.y - 4);
+    }
+
+    function drawPcaCanvas() {
+      const context = pcaCanvas.getContext("2d");
+      const { processed, pcs, reconstructedProcessed, scores } = state.analysis;
+      context.clearRect(0, 0, pcaCanvas.width, pcaCanvas.height);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, pcaCanvas.width, pcaCanvas.height);
+
+      context.strokeStyle = "#e2e8f0";
+      context.lineWidth = 1;
+      context.beginPath();
+      context.moveTo(pcaCanvas.width / 2, 26);
+      context.lineTo(pcaCanvas.width / 2, pcaCanvas.height - 26);
+      context.stroke();
+
+      context.fillStyle = "#172033";
+      context.font = "bold 15px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.textAlign = "left";
+      context.fillText("原始三维空间：蓝点原始，绿点重建", 24, 26);
+      context.fillText(state.components === 1 ? "降到 1 维：只保留 PC1 坐标" : "降到二维：PC1 与 PC2 坐标", 438, 26);
+
+      const maxAbs = Math.max(
+        1,
+        ...processed.flat().map((value) => Math.abs(value)),
+        ...reconstructedProcessed.flat().map((value) => Math.abs(value))
+      );
+      const origin = { x: 205, y: 292 };
+      const scaleFactor = 112 / maxAbs;
+
+      const axisColors = ["#e11d48", "#2563eb", "#059669"];
+      [[1, 0, 0], [0, 1, 0], [0, 0, 1]].forEach((axis, index) => {
+        const from = project3D([0, 0, 0], origin, scaleFactor);
+        const to = project3D(scale(axis, maxAbs * 0.9), origin, scaleFactor);
+        drawArrow(context, from, to, axisColors[index], ["x", "y", "z"][index]);
+      });
+
+      const pcColors = ["#7c3aed", "#d97706", "#0891b2"];
+      pcs.forEach((pc, index) => {
+        const length = Math.sqrt(pc.value) * 1.15;
+        const from = project3D([0, 0, 0], origin, scaleFactor);
+        const to = project3D(scale(pc.vector, length), origin, scaleFactor);
+        drawArrow(context, from, to, pcColors[index], `PC${index + 1}`);
+      });
+
+      const ordered = processed.map((point, index) => ({ point, index })).sort((a, b) => a.point[2] - b.point[2]);
+      ordered.forEach(({ point, index }) => {
+        const original = project3D(point, origin, scaleFactor);
+        const recon = project3D(reconstructedProcessed[index], origin, scaleFactor);
+        context.strokeStyle = "rgba(100, 116, 139, 0.35)";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(original.x, original.y);
+        context.lineTo(recon.x, recon.y);
+        context.stroke();
+
+        context.beginPath();
+        context.arc(recon.x, recon.y, 3.6, 0, Math.PI * 2);
+        context.fillStyle = "rgba(5, 150, 105, 0.62)";
+        context.fill();
+
+        context.beginPath();
+        context.arc(original.x, original.y, pointRadius(scores[index][0]), 0, Math.PI * 2);
+        context.fillStyle = colorForDepth(point[2]);
+        context.fill();
+        context.strokeStyle = "#ffffff";
+        context.lineWidth = 1;
+        context.stroke();
+      });
+
+      drawProjectionPanel(context);
+    }
+
+    function drawProjectionPanel(context) {
+      const { scores } = state.analysis;
+      const left = 438;
+      const top = 64;
+      const width = 340;
+      const height = 390;
+      const center = { x: left + width / 2, y: top + height / 2 };
+      const maxX = Math.max(1, ...scores.map((row) => Math.abs(row[0])));
+      const maxY = Math.max(1, ...scores.map((row) => Math.abs(row[1])));
+      const scaleX = (width * 0.42) / maxX;
+      const scaleY = state.components === 1 ? 1 : (height * 0.40) / maxY;
+
+      context.fillStyle = "#f8fafc";
+      context.fillRect(left, top, width, height);
+      context.strokeStyle = "#d8deea";
+      context.strokeRect(left, top, width, height);
+
+      context.strokeStyle = "#94a3b8";
+      context.lineWidth = 1.5;
+      context.beginPath();
+      context.moveTo(left + 16, center.y);
+      context.lineTo(left + width - 16, center.y);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(center.x, top + 16);
+      context.lineTo(center.x, top + height - 16);
+      context.stroke();
+
+      context.fillStyle = "#5c667a";
+      context.font = "13px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.textAlign = "right";
+      context.fillText("PC1", left + width - 18, center.y - 8);
+      if (state.components >= 2) {
+        context.textAlign = "left";
+        context.fillText("PC2", center.x + 8, top + 20);
+      }
+
+      scores.forEach((row) => {
+        const x = center.x + row[0] * scaleX;
+        const y = state.components === 1 ? center.y : center.y - row[1] * scaleY;
+        context.beginPath();
+        context.arc(x, y, 4.6, 0, Math.PI * 2);
+        context.fillStyle = state.components === 1 ? "#059669" : "#2563eb";
+        context.fill();
+        context.strokeStyle = "#ffffff";
+        context.lineWidth = 1;
+        context.stroke();
+      });
+    }
+
+    function drawSpectrum() {
+      const context = spectrumCanvas.getContext("2d");
+      const { pcs, totalVariance } = state.analysis;
+      const width = spectrumCanvas.width;
+      const height = spectrumCanvas.height;
+      const pad = { left: 44, right: 22, top: 20, bottom: 38 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const maxValue = Math.max(...pcs.map((pc) => pc.value), 1e-9);
+
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+
+      context.strokeStyle = "#d8deea";
+      context.lineWidth = 1;
+      for (let tick = 0; tick <= 4; tick += 1) {
+        const y = pad.top + (plotH * tick) / 4;
+        context.beginPath();
+        context.moveTo(pad.left, y);
+        context.lineTo(width - pad.right, y);
+        context.stroke();
+      }
+
+      const barWidth = plotW / 5;
+      let cumulative = 0;
+      const curve = [];
+      pcs.forEach((pc, index) => {
+        const x = pad.left + 42 + index * (plotW / 3);
+        const barH = (pc.value / maxValue) * plotH;
+        const y = pad.top + plotH - barH;
+        context.fillStyle = index < state.components ? "#2563eb" : "#cbd5e1";
+        context.fillRect(x, y, barWidth, barH);
+        cumulative += pc.value;
+        curve.push({
+          x: x + barWidth / 2,
+          y: pad.top + plotH - (cumulative / Math.max(totalVariance, 1e-12)) * plotH
+        });
+        context.fillStyle = "#172033";
+        context.font = "13px -apple-system, BlinkMacSystemFont, sans-serif";
+        context.textAlign = "center";
+        context.fillText(`PC${index + 1}`, x + barWidth / 2, height - 15);
+      });
+
+      context.strokeStyle = "#059669";
+      context.lineWidth = 3;
+      context.beginPath();
+      curve.forEach((point, index) => {
+        if (index === 0) {
+          context.moveTo(point.x, point.y);
+        } else {
+          context.lineTo(point.x, point.y);
+        }
+      });
+      context.stroke();
+
+      context.fillStyle = "#5c667a";
+      context.font = "13px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.textAlign = "left";
+      context.fillText("variance", 8, pad.top + 12);
+      context.fillStyle = "#2563eb";
+      context.fillRect(pad.left, height - 28, 12, 8);
+      context.fillStyle = "#5c667a";
+      context.fillText("保留主成分", pad.left + 18, height - 21);
+      context.fillStyle = "#059669";
+      context.fillRect(pad.left + 122, height - 26, 22, 4);
+      context.fillStyle = "#5c667a";
+      context.fillText("累计解释方差", pad.left + 150, height - 21);
+    }
+
+    function renderMatrixReadout() {
+      const { means, stds, cov, pcs } = state.analysis;
+      const rows = [
+        ["均值", `[${means.map((value) => fmt(value, 2)).join(", ")}]`],
+        ["标准差", `[${stds.map((value) => fmt(value, 2)).join(", ")}]`],
+        ["协方差第1行", `[${cov[0].map((value) => fmt(value, 2)).join(", ")}]`],
+        ["协方差第2行", `[${cov[1].map((value) => fmt(value, 2)).join(", ")}]`],
+        ["协方差第3行", `[${cov[2].map((value) => fmt(value, 2)).join(", ")}]`],
+        ["特征值 λ", `[${pcs.map((pc) => fmt(pc.value, 3)).join(", ")}]`],
+        ["PC1", `[${pcs[0].vector.map((value) => fmt(value, 2)).join(", ")}]`],
+        ["PC2", `[${pcs[1].vector.map((value) => fmt(value, 2)).join(", ")}]`]
+      ];
+      matrixReadout.innerHTML = "";
+      rows.forEach(([name, value]) => {
+        const row = document.createElement("div");
+        row.className = "readout-row";
+        row.innerHTML = `<strong>${name}</strong><span>${value}</span>`;
+        matrixReadout.appendChild(row);
+      });
+    }
+
+    function updateMetrics() {
+      const { pcs, explained, rmse } = state.analysis;
+      const pc1Ratio = pcs[0].value / Math.max(state.analysis.totalVariance, 1e-12);
+      metrics.variance.textContent = `${fmt(explained * 100, 1)}%`;
+      metrics.rmse.textContent = fmt(rmse, 3);
+      metrics.pc1.textContent = `${fmt(pc1Ratio * 100, 1)}%`;
+      metrics.dimension.textContent = `3 -> ${state.components}`;
+      metrics.title.textContent = `保留 ${state.components} 个主成分，解释 ${fmt(explained * 100, 1)}% 方差`;
+      metrics.detail.textContent = state.components < 3
+        ? `当前重建 RMSE 为 ${fmt(rmse, 3)}；灰线越短，说明被舍弃方向的信息越少。`
+        : "保留全部 3 个主成分时只是换了一组正交坐标，理论上不会丢失信息。";
+      metrics.scale.textContent = state.standardize
+        ? "已标准化：每个特征先除以自己的标准差，PCA 更关注相关结构而不是原始单位大小。"
+        : "未标准化：方差大的原始特征会更容易主导第一主成分。";
+    }
+
+    function render() {
+      state.components = Number(componentSlider.value);
+      state.noise = Number(noiseSlider.value);
+      state.sampleCount = Number(sampleSlider.value);
+      state.standardize = standardizeCheckbox.checked;
+      componentValue.textContent = String(state.components);
+      noiseValue.textContent = fmt(state.noise, 2);
+      sampleValue.textContent = String(state.sampleCount);
+      analyze();
+      drawPcaCanvas();
+      drawSpectrum();
+      renderMatrixReadout();
+      updateMetrics();
+    }
+
+    function regenerate() {
+      generatePoints();
+      render();
+    }
+
+    componentSlider.addEventListener("input", render);
+    noiseSlider.addEventListener("input", regenerate);
+    sampleSlider.addEventListener("input", regenerate);
+    standardizeCheckbox.addEventListener("change", render);
+
+    document.querySelectorAll("[data-preset]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.preset = button.dataset.preset;
+        document.querySelectorAll("[data-preset]").forEach((item) => {
+          item.classList.toggle("active", item === button);
+        });
+        regenerate();
+      });
+    });
+
+    generatePoints();
+    render();
+  </script>
+</body>
+</html>

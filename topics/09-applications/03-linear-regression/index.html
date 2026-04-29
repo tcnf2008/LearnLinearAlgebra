@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>09. 应用专题：线性回归</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --border: #d8deea;
+      --grid: #d8deea;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --cyan: #0891b2;
+      --violet: #7c3aed;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --red-soft: rgba(225, 29, 72, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      color: #243047;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    pre {
+      margin: 10px 0 12px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: #f1f5f9;
+      color: #243047;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .lead {
+      max-width: 940px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .canvas-panel,
+    .loss-panel,
+    .matrix-panel {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .canvas-panel canvas,
+    .loss-panel canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+
+    .canvas-caption {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .caption-item {
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .caption-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .loss-panel,
+    .matrix-panel {
+      padding: 14px;
+    }
+
+    .loss-panel h3,
+    .matrix-panel h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .loss-panel p,
+    .matrix-panel p {
+      font-size: 14px;
+    }
+
+    .matrix-readout {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .readout-row {
+      display: grid;
+      grid-template-columns: 105px 1fr;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .readout-row strong {
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .control-section {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .control-section h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    .value {
+      color: var(--ink);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    button.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    .status-card {
+      padding: 12px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .status-card p {
+      margin: 0 0 8px;
+      color: #293449;
+    }
+
+    .status-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-title {
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin: 8px 0 0;
+      font-size: 13px;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      background: #f0fdf4;
+    }
+
+    .callout p {
+      margin: 0;
+      color: #244033;
+      font-weight: 700;
+    }
+
+    .exercise-block {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    li {
+      margin: 7px 0;
+    }
+
+    details {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    summary {
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .source-list {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 1000px) {
+      .workspace,
+      .analysis-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .learning-path {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .learning-path,
+      .concept-grid,
+      .canvas-caption {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>09. 应用专题：线性回归</h1>
+      <p class="lead">线性回归把“用输入预测输出”的问题写成矩阵近似：选择参数 <code>θ</code>，让预测向量 <code>Xθ</code> 尽量接近真实观测 <code>y</code>。最小二乘解就是把 <code>y</code> 投影到设计矩阵 <code>X</code> 的列空间上。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本专题要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>数据点通常不在同一条直线上，为什么线性代数仍然能给出一条“最好”的预测直线？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>建模：</strong>用 <code>y ≈ θ0 + θ1x</code> 表示输入和输出之间的线性关系。</li>
+        <li><strong>矩阵化：</strong>把所有样本写成 <code>Xθ ≈ y</code>，其中 <code>X</code> 的第一列是 1，第二列是输入 <code>x</code>。</li>
+        <li><strong>误差：</strong>残差 <code>e=y-Xθ</code> 表示每个样本预测错了多少。</li>
+        <li><strong>目标函数：</strong>最小化平方误差和 <code>||y-Xθ||^2</code>，大误差会被更重惩罚。</li>
+        <li><strong>正规方程：</strong>最优解满足 <code>X^T(y-Xθ)=0</code>，残差与列空间正交。</li>
+        <li><strong>泛化边界：</strong>最小训练误差不等于最好预测能力，异常点、非线性和特征尺度都会影响模型。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：调线、看残差、找最小二乘解</h2>
+      <p>拖动蓝色数据点，或调整斜率和截距。绿色线是你当前的模型，红色线是最小二乘解；浅红色方块表示每个残差的平方，面积越大，对损失的贡献越大。</p>
+
+      <div class="workspace">
+        <div>
+          <div class="canvas-panel">
+            <canvas id="fitCanvas" width="820" height="520" aria-label="线性回归散点和残差演示"></canvas>
+            <div class="canvas-caption" aria-live="polite">
+              <div class="caption-item">
+                <span>SSE</span>
+                <strong id="sseMetric">-</strong>
+              </div>
+              <div class="caption-item">
+                <span>RMSE</span>
+                <strong id="rmseMetric">-</strong>
+              </div>
+              <div class="caption-item">
+                <span>R²</span>
+                <strong id="r2Metric">-</strong>
+              </div>
+              <div class="caption-item">
+                <span>|Xᵀe|</span>
+                <strong id="orthMetric">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="analysis-grid">
+            <div class="loss-panel">
+              <h3>损失地形</h3>
+              <p>横轴是斜率 <code>θ1</code>，纵轴是截距 <code>θ0</code>。颜色越深，平方误差越大；绿点是当前参数，红点是最小二乘解。</p>
+              <canvas id="lossCanvas" width="520" height="330" aria-label="线性回归损失地形"></canvas>
+            </div>
+
+            <div class="matrix-panel">
+              <h3>矩阵读数</h3>
+              <p>最优时，残差向量 <code>e</code> 与 <code>X</code> 的两列都正交，所以 <code>X^T e</code> 接近零。</p>
+              <div class="matrix-readout" id="matrixReadout"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle">等待计算</p>
+              <p id="statusDetail"></p>
+              <p id="fitDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>模型参数</h3>
+            <label>
+              <span>斜率 θ1 = <strong class="value" id="slopeValue">0.80</strong></span>
+              <input id="slopeSlider" type="range" min="-3" max="3" step="0.01" value="0.80">
+            </label>
+            <label>
+              <span>截距 θ0 = <strong class="value" id="interceptValue">0.20</strong></span>
+              <input id="interceptSlider" type="range" min="-3" max="3" step="0.01" value="0.20">
+            </label>
+            <div class="preset-grid">
+              <button type="button" id="fitButton">设为最优</button>
+              <button type="button" id="resetButton">重置参数</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>数据集</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="linear" class="active">近似线性</button>
+              <button type="button" data-preset="outlier">带异常点</button>
+              <button type="button" data-preset="curved">非线性趋势</button>
+              <button type="button" data-preset="weak">弱相关</button>
+            </div>
+            <p class="mini-note">可直接拖动散点。异常点会显著影响平方误差，因为误差会被平方。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>噪声与样本</h3>
+            <label>
+              <span>噪声强度 = <strong class="value" id="noiseValue">0.20</strong></span>
+              <input id="noiseSlider" type="range" min="0" max="0.65" step="0.01" value="0.20">
+            </label>
+            <label>
+              <span>样本数 n = <strong class="value" id="sampleValue">12</strong></span>
+              <input id="sampleSlider" type="range" min="5" max="24" step="1" value="12">
+            </label>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 线性回归是什么</h3>
+          <p>最简单的一元线性回归假设输出可以由输入的线性函数近似：</p>
+          <pre>y_hat = θ0 + θ1 x</pre>
+          <p><code>θ0</code> 是截距，表示 <code>x=0</code> 时的预测值；<code>θ1</code> 是斜率，表示输入增加 1 个单位时预测值改变多少。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 为什么写成 Xθ≈y</h3>
+          <p>把所有样本排成矩阵：</p>
+          <pre>X = [[1, x1],
+     [1, x2],
+     ...
+     [1, xn]],     θ = [θ0, θ1]^T</pre>
+          <p>那么所有预测可以一次写成 <code>y_hat=Xθ</code>。这让回归从“画一条线”变成“在列空间里找最接近 <code>y</code> 的向量”。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 为什么用平方误差</h3>
+          <p>残差是 <code>e=y-Xθ</code>。最小二乘选择让 <code>||e||^2</code> 最小的参数：</p>
+          <pre>minimize ||y - Xθ||^2</pre>
+          <p>平方误差可导、容易计算，并且会更重惩罚大误差；这也意味着异常点会产生很大影响。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 正规方程从哪里来</h3>
+          <p>最优预测 <code>Xθ*</code> 是 <code>y</code> 在列空间 <code>Col(X)</code> 上的投影。投影误差必须垂直于整个列空间：</p>
+          <pre>X^T(y - Xθ*) = 0</pre>
+          <p>展开后得到正规方程 <code>X^T X θ* = X^T y</code>。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. R² 表示什么</h3>
+          <p><code>R²</code> 比较模型误差和“只预测平均值”的误差：</p>
+          <pre>R² = 1 - SSE / SST</pre>
+          <p>它越接近 1，说明模型解释了越多输出变化；如果模型比均值预测还差，<code>R²</code> 甚至可以是负数。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 工程里为什么不用直接求逆</h3>
+          <p>理论上可以写 <code>θ=(X^TX)^{-1}X^Ty</code>，但工程中通常不用显式求逆。若特征列近似相关，<code>X^TX</code> 会病态，QR、SVD 或带正则项的岭回归更稳。</p>
+          <p>本页用一元回归建立直觉；真实应用会扩展到多特征、特征缩放、正则化、训练/测试划分和误差分析。</p>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>一句话总结：线性回归不是“随手画线”，而是在设计矩阵的列空间里找离观测向量最近的投影点。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么线性回归的残差向量在最优点要与 <code>X</code> 的每一列正交？</li>
+          <li>为什么带异常点的数据会明显拉动最小二乘直线？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>数据点为 <code>(0,1)</code>、<code>(1,3)</code>、<code>(2,5)</code>。直接写出最优直线，并说明为什么残差为 0。</li>
+          <li>若某模型 <code>SSE=20</code>，只预测均值时 <code>SST=50</code>，求 <code>R²</code>。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>选择“近似线性”，点击“设为最优”，观察 <code>|X^T e|</code> 是否接近 0。</li>
+          <li>选择“带异常点”，拖动最右侧异常点，观察最优线、SSE 和 R² 如何变化。</li>
+          <li>选择“非线性趋势”，比较最小二乘线的低 SSE 是否足以说明模型形式正确。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>程序题</h3>
+        <ol>
+          <li>运行 <code>.venv/bin/python topics/09-applications/03-linear-regression/demo.py</code>，查看正规方程、<code>numpy.linalg.lstsq</code> 和梯度下降得到的参数是否一致。</li>
+          <li>在脚本里增大异常点的 <code>y</code> 值，观察最小二乘参数和 RMSE 的变化。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>为什么训练误差小不一定代表未来预测好？</li>
+          <li>如果两个特征几乎一样，为什么 <code>X^TX</code> 可能变得难以稳定求解？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>如果残差在列空间方向上还有分量，就可以沿该方向继续移动预测向量，让误差更小；最优投影点的残差必须垂直于列空间。</li>
+          <li>平方误差会把大残差放大，异常点的损失贡献可能超过很多普通点。</li>
+          <li>最优直线是 <code>y=1+2x</code>，三个点全部在直线上，所以每个残差都是 0。</li>
+          <li><code>R²=1-20/50=0.6</code>，表示模型解释了约 60% 的总变化。</li>
+          <li>非线性数据中，即使线性模型找到最小 SSE，也可能系统性低估或高估某些区域；这说明模型形式有偏差。</li>
+          <li>训练误差只评价已有样本，未来样本可能受噪声、采样偏差或分布变化影响；过度贴合训练数据也会损害泛化。</li>
+          <li>两个几乎相同的特征让列空间方向接近重合，<code>X^TX</code> 接近奇异，小数据扰动就会导致参数大幅变化。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“预测线 -> 残差平方 -> 设计矩阵 -> 投影正交 -> 正规方程”的顺序，让线性回归先成为一个可观察的近似问题，再落到矩阵最小二乘。</p>
+      <ul class="source-list">
+        <li>概念校准：最小二乘、投影和正规方程，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/lecture-16-projection-matrices-and-least-squares/">MIT OCW 18.06SC: Projection Matrices and Least Squares</a>。</li>
+        <li>建模路径：用线性回归和平方误差建立监督学习的基础形式，参考 <a href="https://cs229.stanford.edu/main_notes.pdf">Stanford CS229 Lecture Notes</a>。</li>
+        <li>程序实现：Python demo 使用 <code>numpy.linalg.lstsq</code> 的标准最小二乘接口，参考 <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.lstsq.html">NumPy: numpy.linalg.lstsq</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const xRange = [-3.2, 3.2];
+    const yRange = [-3.2, 3.2];
+    const state = {
+      preset: "linear",
+      noise: 0.2,
+      sampleCount: 12,
+      slope: 0.8,
+      intercept: 0.2,
+      points: [],
+      draggingIndex: -1
+    };
+
+    const fitCanvas = document.getElementById("fitCanvas");
+    const lossCanvas = document.getElementById("lossCanvas");
+    const slopeSlider = document.getElementById("slopeSlider");
+    const interceptSlider = document.getElementById("interceptSlider");
+    const noiseSlider = document.getElementById("noiseSlider");
+    const sampleSlider = document.getElementById("sampleSlider");
+    const slopeValue = document.getElementById("slopeValue");
+    const interceptValue = document.getElementById("interceptValue");
+    const noiseValue = document.getElementById("noiseValue");
+    const sampleValue = document.getElementById("sampleValue");
+    const matrixReadout = document.getElementById("matrixReadout");
+
+    const metrics = {
+      sse: document.getElementById("sseMetric"),
+      rmse: document.getElementById("rmseMetric"),
+      r2: document.getElementById("r2Metric"),
+      orth: document.getElementById("orthMetric"),
+      title: document.getElementById("statusTitle"),
+      detail: document.getElementById("statusDetail"),
+      fit: document.getElementById("fitDetail")
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function fmt(value, digits = 3) {
+      return Number.isFinite(value) ? value.toFixed(digits) : "-";
+    }
+
+    function seededNoise(index, salt = 1) {
+      const raw = Math.sin((index + 1) * 127.1 + salt * 311.7) * 43758.5453;
+      return raw - Math.floor(raw) - 0.5;
+    }
+
+    function generatePoints() {
+      const n = state.sampleCount;
+      const points = [];
+      for (let i = 0; i < n; i += 1) {
+        const t = n === 1 ? 0 : i / (n - 1);
+        let x = -2.7 + 5.4 * t;
+        let y;
+
+        if (state.preset === "outlier") {
+          y = 0.55 + 0.72 * x + state.noise * 1.7 * seededNoise(i, 1);
+          if (i === n - 1) {
+            y += 2.1 + 1.5 * state.noise;
+          }
+        } else if (state.preset === "curved") {
+          y = -1.05 + 0.68 * x + 0.34 * x * x + state.noise * seededNoise(i, 2);
+        } else if (state.preset === "weak") {
+          x = -2.6 + 5.2 * t + 0.22 * seededNoise(i, 3);
+          y = 0.2 + 0.12 * x + (0.42 + state.noise) * seededNoise(i, 4);
+        } else {
+          y = 0.35 + 0.82 * x + state.noise * 1.5 * seededNoise(i, 5);
+        }
+
+        points.push({ x: clamp(x, xRange[0] + 0.15, xRange[1] - 0.15), y: clamp(y, yRange[0] + 0.15, yRange[1] - 0.15) });
+      }
+      state.points = points;
+    }
+
+    function ols(points = state.points) {
+      const n = points.length;
+      const meanX = points.reduce((sum, point) => sum + point.x, 0) / n;
+      const meanY = points.reduce((sum, point) => sum + point.y, 0) / n;
+      let sxx = 0;
+      let sxy = 0;
+      points.forEach((point) => {
+        const dx = point.x - meanX;
+        sxx += dx * dx;
+        sxy += dx * (point.y - meanY);
+      });
+      const slope = Math.abs(sxx) < 1e-9 ? 0 : sxy / sxx;
+      const intercept = meanY - slope * meanX;
+      return { slope, intercept };
+    }
+
+    function predict(point, model) {
+      return model.intercept + model.slope * point.x;
+    }
+
+    function stats(model) {
+      const n = state.points.length;
+      const meanY = state.points.reduce((sum, point) => sum + point.y, 0) / n;
+      let sse = 0;
+      let sst = 0;
+      let sumResidual = 0;
+      let xResidual = 0;
+      state.points.forEach((point) => {
+        const residual = point.y - predict(point, model);
+        sse += residual * residual;
+        sst += (point.y - meanY) ** 2;
+        sumResidual += residual;
+        xResidual += point.x * residual;
+      });
+      const rmse = Math.sqrt(sse / n);
+      const r2 = sst < 1e-9 ? 1 : 1 - sse / sst;
+      return { sse, rmse, r2, sumResidual, xResidual, orthNorm: Math.hypot(sumResidual, xResidual) };
+    }
+
+    function normalEquationValues() {
+      let n = state.points.length;
+      let sumX = 0;
+      let sumX2 = 0;
+      let sumY = 0;
+      let sumXY = 0;
+      state.points.forEach((point) => {
+        sumX += point.x;
+        sumX2 += point.x * point.x;
+        sumY += point.y;
+        sumXY += point.x * point.y;
+      });
+      return { n, sumX, sumX2, sumY, sumXY };
+    }
+
+    function worldToCanvas(point, canvas = fitCanvas) {
+      const pad = 56;
+      const w = canvas.width - pad * 2;
+      const h = canvas.height - pad * 2;
+      return {
+        x: pad + ((point.x - xRange[0]) / (xRange[1] - xRange[0])) * w,
+        y: pad + ((yRange[1] - point.y) / (yRange[1] - yRange[0])) * h
+      };
+    }
+
+    function canvasToWorld(x, y, canvas = fitCanvas) {
+      const pad = 56;
+      const w = canvas.width - pad * 2;
+      const h = canvas.height - pad * 2;
+      return {
+        x: xRange[0] + ((x - pad) / w) * (xRange[1] - xRange[0]),
+        y: yRange[1] - ((y - pad) / h) * (yRange[1] - yRange[0])
+      };
+    }
+
+    function drawGrid(context) {
+      context.clearRect(0, 0, fitCanvas.width, fitCanvas.height);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, fitCanvas.width, fitCanvas.height);
+      context.strokeStyle = "#d8deea";
+      context.lineWidth = 1;
+      context.font = "13px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.fillStyle = "#5c667a";
+      context.textAlign = "center";
+      context.textBaseline = "top";
+
+      for (let x = -3; x <= 3; x += 1) {
+        const from = worldToCanvas({ x, y: yRange[0] });
+        const to = worldToCanvas({ x, y: yRange[1] });
+        context.beginPath();
+        context.moveTo(from.x, from.y);
+        context.lineTo(to.x, to.y);
+        context.stroke();
+        context.fillText(String(x), from.x, worldToCanvas({ x, y: 0 }).y + 8);
+      }
+
+      context.textAlign = "right";
+      context.textBaseline = "middle";
+      for (let y = -3; y <= 3; y += 1) {
+        const from = worldToCanvas({ x: xRange[0], y });
+        const to = worldToCanvas({ x: xRange[1], y });
+        context.beginPath();
+        context.moveTo(from.x, from.y);
+        context.lineTo(to.x, to.y);
+        context.stroke();
+        if (y !== 0) {
+          context.fillText(String(y), worldToCanvas({ x: 0, y }).x - 8, from.y);
+        }
+      }
+
+      context.strokeStyle = "#6f7b91";
+      context.lineWidth = 2;
+      const xAxisA = worldToCanvas({ x: xRange[0], y: 0 });
+      const xAxisB = worldToCanvas({ x: xRange[1], y: 0 });
+      context.beginPath();
+      context.moveTo(xAxisA.x, xAxisA.y);
+      context.lineTo(xAxisB.x, xAxisB.y);
+      context.stroke();
+
+      const yAxisA = worldToCanvas({ x: 0, y: yRange[0] });
+      const yAxisB = worldToCanvas({ x: 0, y: yRange[1] });
+      context.beginPath();
+      context.moveTo(yAxisA.x, yAxisA.y);
+      context.lineTo(yAxisB.x, yAxisB.y);
+      context.stroke();
+    }
+
+    function drawLine(context, model, color, width, label) {
+      const left = { x: xRange[0], y: model.intercept + model.slope * xRange[0] };
+      const right = { x: xRange[1], y: model.intercept + model.slope * xRange[1] };
+      const a = worldToCanvas(left);
+      const b = worldToCanvas(right);
+      context.strokeStyle = color;
+      context.lineWidth = width;
+      context.beginPath();
+      context.moveTo(a.x, a.y);
+      context.lineTo(b.x, b.y);
+      context.stroke();
+      context.fillStyle = color;
+      context.font = "bold 13px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.textAlign = "left";
+      context.textBaseline = "bottom";
+      context.fillText(label, b.x - 88, b.y - 8);
+    }
+
+    function drawFit() {
+      const context = fitCanvas.getContext("2d");
+      const current = { slope: state.slope, intercept: state.intercept };
+      const best = ols();
+      drawGrid(context);
+
+      state.points.forEach((point) => {
+        const predicted = { x: point.x, y: predict(point, current) };
+        const p = worldToCanvas(point);
+        const q = worldToCanvas(predicted);
+        const squareSize = Math.abs(q.y - p.y);
+        context.fillStyle = "rgba(225, 29, 72, 0.10)";
+        context.strokeStyle = "rgba(225, 29, 72, 0.35)";
+        context.lineWidth = 1;
+        context.fillRect(p.x, Math.min(p.y, q.y), squareSize, squareSize);
+        context.strokeRect(p.x, Math.min(p.y, q.y), squareSize, squareSize);
+
+        context.strokeStyle = "#e11d48";
+        context.lineWidth = 2;
+        context.beginPath();
+        context.moveTo(p.x, p.y);
+        context.lineTo(q.x, q.y);
+        context.stroke();
+      });
+
+      drawLine(context, best, "#e11d48", 3, "least squares");
+      drawLine(context, current, "#059669", 3, "current");
+
+      state.points.forEach((point, index) => {
+        const p = worldToCanvas(point);
+        context.beginPath();
+        context.arc(p.x, p.y, index === state.draggingIndex ? 9 : 7, 0, Math.PI * 2);
+        context.fillStyle = "#2563eb";
+        context.fill();
+        context.lineWidth = 2;
+        context.strokeStyle = "#ffffff";
+        context.stroke();
+      });
+    }
+
+    function drawLoss() {
+      const context = lossCanvas.getContext("2d");
+      const width = lossCanvas.width;
+      const height = lossCanvas.height;
+      const pad = 42;
+      const plotW = width - pad * 2;
+      const plotH = height - pad * 2;
+      const best = ols();
+      const current = { slope: state.slope, intercept: state.intercept };
+      const slopeMin = best.slope - 1.8;
+      const slopeMax = best.slope + 1.8;
+      const interceptMin = best.intercept - 1.8;
+      const interceptMax = best.intercept + 1.8;
+      const cells = 80;
+      const values = [];
+      let minValue = Infinity;
+      let maxValue = -Infinity;
+
+      for (let row = 0; row < cells; row += 1) {
+        for (let col = 0; col < cells; col += 1) {
+          const slope = slopeMin + (col / (cells - 1)) * (slopeMax - slopeMin);
+          const intercept = interceptMax - (row / (cells - 1)) * (interceptMax - interceptMin);
+          const value = stats({ slope, intercept }).sse;
+          values.push(value);
+          minValue = Math.min(minValue, value);
+          maxValue = Math.max(maxValue, value);
+        }
+      }
+
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+
+      const cellW = plotW / cells;
+      const cellH = plotH / cells;
+      values.forEach((value, index) => {
+        const row = Math.floor(index / cells);
+        const col = index % cells;
+        const t = Math.sqrt((value - minValue) / Math.max(maxValue - minValue, 1e-9));
+        const r = Math.round(240 - 70 * t);
+        const g = Math.round(249 - 120 * t);
+        const b = Math.round(255 - 190 * t);
+        context.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        context.fillRect(pad + col * cellW, pad + row * cellH, Math.ceil(cellW), Math.ceil(cellH));
+      });
+
+      context.strokeStyle = "#d8deea";
+      context.strokeRect(pad, pad, plotW, plotH);
+
+      function paramToCanvas(model) {
+        return {
+          x: pad + ((model.slope - slopeMin) / (slopeMax - slopeMin)) * plotW,
+          y: pad + ((interceptMax - model.intercept) / (interceptMax - interceptMin)) * plotH
+        };
+      }
+
+      const bestPoint = paramToCanvas(best);
+      const currentPoint = paramToCanvas(current);
+
+      context.fillStyle = "#e11d48";
+      context.beginPath();
+      context.arc(bestPoint.x, bestPoint.y, 7, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = "#059669";
+      context.beginPath();
+      context.arc(currentPoint.x, currentPoint.y, 7, 0, Math.PI * 2);
+      context.fill();
+
+      context.strokeStyle = "#334155";
+      context.lineWidth = 1;
+      context.setLineDash([4, 4]);
+      context.beginPath();
+      context.moveTo(currentPoint.x, currentPoint.y);
+      context.lineTo(bestPoint.x, bestPoint.y);
+      context.stroke();
+      context.setLineDash([]);
+
+      context.fillStyle = "#172033";
+      context.font = "13px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "top";
+      context.fillText("θ1 slope", pad + plotW / 2, height - 24);
+      context.save();
+      context.translate(14, pad + plotH / 2);
+      context.rotate(-Math.PI / 2);
+      context.fillText("θ0 intercept", 0, 0);
+      context.restore();
+    }
+
+    function renderMatrixReadout() {
+      const current = { slope: state.slope, intercept: state.intercept };
+      const best = ols();
+      const currentStats = stats(current);
+      const bestStats = stats(best);
+      const eq = normalEquationValues();
+      const rows = [
+        ["当前 θ", `[${fmt(current.intercept)}, ${fmt(current.slope)}]`],
+        ["最优 θ*", `[${fmt(best.intercept)}, ${fmt(best.slope)}]`],
+        ["Xᵀe", `[${fmt(currentStats.sumResidual)}, ${fmt(currentStats.xResidual)}]`],
+        ["XᵀX", `[[${fmt(eq.n, 0)}, ${fmt(eq.sumX)}], [${fmt(eq.sumX)}, ${fmt(eq.sumX2)}]]`],
+        ["Xᵀy", `[${fmt(eq.sumY)}, ${fmt(eq.sumXY)}]`],
+        ["最优 SSE", fmt(bestStats.sse)]
+      ];
+      matrixReadout.innerHTML = "";
+      rows.forEach(([name, value]) => {
+        const row = document.createElement("div");
+        row.className = "readout-row";
+        row.innerHTML = `<strong>${name}</strong><span>${value}</span>`;
+        matrixReadout.appendChild(row);
+      });
+    }
+
+    function updateMetrics() {
+      const current = { slope: state.slope, intercept: state.intercept };
+      const best = ols();
+      const currentStats = stats(current);
+      const bestStats = stats(best);
+      metrics.sse.textContent = fmt(currentStats.sse, 2);
+      metrics.rmse.textContent = fmt(currentStats.rmse, 3);
+      metrics.r2.textContent = fmt(currentStats.r2, 3);
+      metrics.orth.textContent = fmt(currentStats.orthNorm, 3);
+      metrics.title.textContent = `当前 SSE=${fmt(currentStats.sse, 2)}，最优 SSE=${fmt(bestStats.sse, 2)}`;
+
+      const gap = currentStats.sse - bestStats.sse;
+      metrics.detail.textContent = gap < 0.01
+        ? "当前参数已经接近最小二乘解，残差几乎与设计矩阵列空间正交。"
+        : `当前参数还不是最优；把参数移动到红点可让 SSE 约减少 ${fmt(gap, 2)}。`;
+
+      metrics.fit.textContent = `最优直线约为 y=${fmt(best.intercept)} + ${fmt(best.slope)}x。R²=${fmt(bestStats.r2, 3)}，表示线性模型能解释的样本变化比例。`;
+    }
+
+    function render() {
+      state.slope = Number(slopeSlider.value);
+      state.intercept = Number(interceptSlider.value);
+      slopeValue.textContent = fmt(state.slope, 2);
+      interceptValue.textContent = fmt(state.intercept, 2);
+      noiseValue.textContent = fmt(state.noise, 2);
+      sampleValue.textContent = String(state.sampleCount);
+      drawFit();
+      drawLoss();
+      renderMatrixReadout();
+      updateMetrics();
+    }
+
+    function syncSliders(model) {
+      state.slope = clamp(model.slope, Number(slopeSlider.min), Number(slopeSlider.max));
+      state.intercept = clamp(model.intercept, Number(interceptSlider.min), Number(interceptSlider.max));
+      slopeSlider.value = String(state.slope);
+      interceptSlider.value = String(state.intercept);
+    }
+
+    function loadPreset(name) {
+      state.preset = name;
+      document.querySelectorAll("[data-preset]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.preset === name);
+      });
+      generatePoints();
+      syncSliders({ slope: 0.8, intercept: 0.2 });
+      render();
+    }
+
+    slopeSlider.addEventListener("input", render);
+    interceptSlider.addEventListener("input", render);
+
+    noiseSlider.addEventListener("input", () => {
+      state.noise = Number(noiseSlider.value);
+      generatePoints();
+      render();
+    });
+
+    sampleSlider.addEventListener("input", () => {
+      state.sampleCount = Number(sampleSlider.value);
+      generatePoints();
+      render();
+    });
+
+    document.querySelectorAll("[data-preset]").forEach((button) => {
+      button.addEventListener("click", () => loadPreset(button.dataset.preset));
+    });
+
+    document.getElementById("fitButton").addEventListener("click", () => {
+      syncSliders(ols());
+      render();
+    });
+
+    document.getElementById("resetButton").addEventListener("click", () => {
+      syncSliders({ slope: 0.8, intercept: 0.2 });
+      render();
+    });
+
+    fitCanvas.addEventListener("pointerdown", (event) => {
+      const rect = fitCanvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (fitCanvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (fitCanvas.height / rect.height);
+      let nearest = -1;
+      let nearestDistance = Infinity;
+      state.points.forEach((point, index) => {
+        const p = worldToCanvas(point);
+        const distance = Math.hypot(p.x - x, p.y - y);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearest = index;
+        }
+      });
+      if (nearestDistance < 18) {
+        state.draggingIndex = nearest;
+        fitCanvas.setPointerCapture(event.pointerId);
+        render();
+      }
+    });
+
+    fitCanvas.addEventListener("pointermove", (event) => {
+      if (state.draggingIndex < 0) {
+        return;
+      }
+      const rect = fitCanvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (fitCanvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (fitCanvas.height / rect.height);
+      const world = canvasToWorld(x, y);
+      state.points[state.draggingIndex] = {
+        x: clamp(world.x, xRange[0] + 0.05, xRange[1] - 0.05),
+        y: clamp(world.y, yRange[0] + 0.05, yRange[1] - 0.05)
+      };
+      render();
+    });
+
+    function stopDragging() {
+      state.draggingIndex = -1;
+      render();
+    }
+
+    fitCanvas.addEventListener("pointerup", stopDragging);
+    fitCanvas.addEventListener("pointercancel", stopDragging);
+    fitCanvas.addEventListener("pointerleave", () => {
+      if (state.draggingIndex >= 0) {
+        stopDragging();
+      }
+    });
+
+    generatePoints();
+    render();
+  </script>
+</body>
+</html>
