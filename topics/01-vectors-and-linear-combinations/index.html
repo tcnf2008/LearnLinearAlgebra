@@ -18,9 +18,11 @@
       --v: #e11d48;
       --combo: #059669;
       --accent: #7c3aed;
+      --target: #f59e0b;
       --span: rgba(5, 150, 105, 0.13);
       --border: #d8deea;
       --code: #243047;
+      --warn: #b45309;
     }
 
     * {
@@ -130,6 +132,119 @@
       color: #293449;
     }
 
+    .core-question {
+      padding: 18px;
+      border: 1px solid #c7d2fe;
+      border-radius: 8px;
+      background: #eef2ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #312e81;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tabs .mode-tab,
+    .preset-grid button {
+      width: auto;
+    }
+
+    .mode-tabs .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-color: transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tabs .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .mode-hint {
+      margin: 12px 0 0;
+      padding: 10px 12px;
+      border-left: 4px solid #2563eb;
+      background: #eff6ff;
+      border-radius: 8px;
+      color: #1e3a8a;
+      font-size: 14px;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #c7d2fe;
+      border-top: 0;
+      border-radius: 8px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
     .workspace {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 320px;
@@ -155,6 +270,7 @@
       width: 100%;
       height: 620px;
       cursor: crosshair;
+      touch-action: none;
     }
 
     .legend {
@@ -187,6 +303,8 @@
 
     .controls {
       padding: 16px;
+      position: sticky;
+      top: 12px;
     }
 
     .control-section + .control-section {
@@ -209,6 +327,8 @@
 
     input[type="range"] {
       width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
     }
 
     .value {
@@ -228,6 +348,43 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 13px;
       line-height: 1.55;
+    }
+
+    .status-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .status-line {
+      margin: 0;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .status-meta {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .preset-grid button {
+      min-height: 38px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+
+    .mini-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
     }
 
     code {
@@ -325,11 +482,21 @@
       color: #4c3b75;
     }
 
-    @media (max-width: 900px) {
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
       .workspace,
       .concept-grid,
-      .objectives {
+      .objectives,
+      .learning-path,
+      .focus-panel {
         grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
       }
 
       .canvas-wrap {
@@ -346,33 +513,49 @@
   <main>
     <header>
       <h1>01. 向量与线性组合</h1>
-      <p class="lead">本页把知识讲解、互动呈现、练习题和参考答案放在同一个页面中。学习时先建立直觉，再看定义和公式，然后立刻用交互图与练习验证理解。</p>
+      <p class="lead">本页从一个具体问题出发：如果只能沿几个方向移动，靠缩放和相加到底能到达哪里？先用交互建立直觉，再把这种动作写成定义、公式和练习。</p>
       <nav aria-label="本页导航">
-        <a href="#goal">学习目标</a>
+        <a href="#goal">学习路线</a>
         <a href="#interactive">互动演示</a>
         <a href="#concepts">知识讲解</a>
         <a href="#matrix-link">连接矩阵</a>
         <a href="#exercises">练习</a>
         <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
       </nav>
     </header>
 
     <section id="goal">
-      <h2>学习目标</h2>
-      <p>线性代数关心的是线性结构。最基础的线性结构来自两个动作：相加和缩放。</p>
-      <ul class="objectives">
-        <li>理解向量为什么可以表示位移、数据、状态或坐标。</li>
-        <li>解释向量加法和数乘的几何意义。</li>
-        <li>理解线性组合 <code>a*u + b*v</code>。</li>
-        <li>理解 <code>span</code> 是所有线性组合形成的集合。</li>
-        <li>区分线性相关和线性无关。</li>
-        <li>理解基和坐标之间的关系。</li>
-      </ul>
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>给定两个方向 <code>u</code> 和 <code>v</code>，只允许做“缩放”和“相加”，我们能生成哪些向量？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>对象：</strong>向量不是只会画箭头，它是可以相加、可以缩放的量。</li>
+        <li><strong>动作：</strong>数乘改变走多少份，向量加法把几段移动接起来。</li>
+        <li><strong>组合：</strong><code>a*u + b*v</code> 是沿两个方向分别走 <code>a</code> 份和 <code>b</code> 份。</li>
+        <li><strong>范围：</strong><code>span</code> 是所有可能组合出的结果，也就是“能到达的地方”。</li>
+        <li><strong>冗余：</strong>共线向量只提供一个方向，不共线向量提供两个独立方向。</li>
+        <li><strong>坐标：</strong>当 <code>u</code>、<code>v</code> 是一组基时，<code>[a,b]</code> 表示相对这组基的走法。</li>
+      </ol>
     </section>
 
     <section id="interactive">
-      <h2>互动演示：用两个方向组合出新向量</h2>
-      <p>拖动蓝色向量 <code>u</code> 和红色向量 <code>v</code>，调整系数 <code>a</code>、<code>b</code>，观察绿色向量 <code>a*u + b*v</code> 如何变化。浅绿色点表示很多组系数组合出的结果。</p>
+      <h2>互动演示：缩放、相加、到达范围</h2>
+      <p>按步骤切换观察重点。拖动蓝色向量 <code>u</code> 和红色向量 <code>v</code>，调整系数 <code>a</code>、<code>b</code>；在“基与坐标”标签页中再观察橙色目标 <code>w</code>。</p>
+      <p class="mode-hint">上方标签控制画布显示内容：当前标签只显示本步骤最相关的图形。要看目标向量 <code>w</code>，请切换到“6 基与坐标”。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-vectors" aria-current="page" data-mode="vectors">1 向量</a>
+        <a class="mode-tab" href="#mode-scalars" data-mode="scalars">2 数乘</a>
+        <a class="mode-tab" href="#mode-addition" data-mode="addition">3 相加</a>
+        <a class="mode-tab" href="#mode-combo" data-mode="combo">4 线性组合</a>
+        <a class="mode-tab" href="#mode-span" data-mode="span">5 Span</a>
+        <a class="mode-tab" href="#mode-basis" data-mode="basis">6 基与坐标</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
 
       <div class="workspace">
         <div class="canvas-wrap" aria-label="二维向量交互画布">
@@ -381,11 +564,21 @@
             <span><i class="swatch" style="background: var(--u);"></i>u</span>
             <span><i class="swatch" style="background: var(--v);"></i>v</span>
             <span><i class="swatch" style="background: var(--combo);"></i>a*u + b*v</span>
+            <span><i class="swatch" style="background: var(--target);"></i>w</span>
             <span><i class="swatch" style="background: var(--span); border: 1px solid var(--combo);"></i>采样线性组合</span>
           </div>
         </div>
 
         <aside class="controls">
+          <div class="control-section">
+            <h3>当前关系</h3>
+            <div class="status-card">
+              <p class="status-line" id="statusText"></p>
+              <p class="status-meta" id="detValue"></p>
+              <p class="status-meta" id="targetReach"></p>
+            </div>
+          </div>
+
           <div class="control-section">
             <h3>系数</h3>
             <label>
@@ -399,6 +592,31 @@
           </div>
 
           <div class="control-section">
+            <h3>目标向量 w</h3>
+            <label>
+              <span>w.x = <strong class="value" id="wXValue">3.00</strong></span>
+              <input id="wXSlider" type="range" min="-5" max="5" step="0.05" value="3">
+            </label>
+            <label>
+              <span>w.y = <strong class="value" id="wYValue">2.00</strong></span>
+              <input id="wYSlider" type="range" min="-5" max="5" step="0.05" value="2">
+            </label>
+            <p class="mini-note">橙色 <code>w</code> 用来回答：这个目标能不能由 <code>u</code>、<code>v</code> 线性组合出来？</p>
+          </div>
+
+          <div class="control-section">
+            <h3>关键预设</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="standard">标准基</button>
+              <button type="button" data-preset="independent">不共线</button>
+              <button type="button" data-preset="collinear">共线</button>
+              <button type="button" data-preset="near">几乎共线</button>
+              <button type="button" data-preset="single">只有一方向</button>
+              <button type="button" data-preset="random">随机</button>
+            </div>
+          </div>
+
+          <div class="control-section">
             <h3>当前计算</h3>
             <div class="readout" id="readout"></div>
           </div>
@@ -406,7 +624,7 @@
           <div class="control-section">
             <h3>操作</h3>
             <button id="resetButton" type="button">重置向量和系数</button>
-            <p class="hint">拖动箭头端点可以改变 <code>u</code> 和 <code>v</code>。若两个向量共线，浅绿色采样区域会退化成一条线。</p>
+            <p class="hint">浅绿色点只是有限采样，用来帮助观察趋势；真正的 <code>span</code> 包含所有实数系数组合。</p>
           </div>
         </aside>
       </div>
@@ -417,38 +635,34 @@
       <div class="concept-grid">
         <article class="concept">
           <h3>1. 向量是什么</h3>
-          <p>在二维平面中，向量可以画成从原点出发的箭头，例如 <code>v = [3, 2]</code> 表示向右走 3 个单位，再向上走 2 个单位。</p>
-          <p>但箭头只是直观模型。更一般地，向量可以表示位移、数据、状态或坐标。</p>
-          <p>从第一性原理看，向量最重要的能力是：两个向量可以相加，一个向量可以被数字缩放。</p>
+          <p>在二维平面里，向量可以画成从原点出发的箭头，例如 <code>[3,2]</code> 表示向右 3、向上 2。</p>
+          <p>但箭头只是可视化。更本质地说，向量是一种可以做两件事的对象：和另一个向量相加，被一个数字缩放。</p>
         </article>
 
         <article class="concept">
-          <h3>2. 向量加法</h3>
-          <p>设 <code>u = [u1, u2]</code>，<code>v = [v1, v2]</code>，则：</p>
-          <pre class="formula">u + v = [u1 + v1, u2 + v2]</pre>
-          <p>几何意义是：先走 <code>u</code>，再走 <code>v</code>，最终位置就是 <code>u + v</code>。</p>
-          <pre>u = [2, 1]
-v = [1, 3]
-u + v = [3, 4]</pre>
-        </article>
-
-        <article class="concept">
-          <h3>3. 数乘</h3>
-          <p>设 <code>v = [v1, v2]</code>，<code>a</code> 是一个数字，则：</p>
-          <pre class="formula">a * v = [a * v1, a * v2]</pre>
+          <h3>2. 数乘</h3>
+          <p>数乘回答“沿这个方向走多少份”。设 <code>v = [v1,v2]</code>，则：</p>
+          <pre class="formula">a*v = [a*v1, a*v2]</pre>
           <ul>
-            <li><code>a &gt; 1</code>：沿原方向拉长。</li>
-            <li><code>0 &lt; a &lt; 1</code>：沿原方向缩短。</li>
-            <li><code>a = 0</code>：变成零向量。</li>
-            <li><code>a &lt; 0</code>：反向并缩放。</li>
+            <li><code>a &gt; 1</code>：同方向拉长。</li>
+            <li><code>0 &lt; a &lt; 1</code>：同方向缩短。</li>
+            <li><code>a = 0</code>：回到零向量。</li>
+            <li><code>a &lt; 0</code>：反方向走。</li>
           </ul>
         </article>
 
         <article class="concept">
+          <h3>3. 向量加法</h3>
+          <p>向量加法回答“先走一段，再走一段，最后在哪里”。设 <code>u = [u1,u2]</code>，<code>v = [v1,v2]</code>，则：</p>
+          <pre class="formula">u + v = [u1 + v1, u2 + v2]</pre>
+          <p>这不是两个数字列表的机械相加，而是把两次移动接成一次总移动。</p>
+        </article>
+
+        <article class="concept">
           <h3>4. 线性组合</h3>
-          <p>如果有两个向量 <code>u</code> 和 <code>v</code>，那么：</p>
+          <p>把“缩放”和“相加”连起来，就得到线性组合：</p>
           <pre class="formula">a*u + b*v</pre>
-          <p>叫做 <strong>线性组合</strong>（linear combination）。系数 <code>a</code> 和 <code>b</code> 控制你沿着两个方向分别走多少。</p>
+          <p>它的含义是：沿 <code>u</code> 走 <code>a</code> 份，沿 <code>v</code> 走 <code>b</code> 份，然后把两段移动合并。</p>
           <pre>u = [2, 0]
 v = [0, 3]
 a = 1.5
@@ -458,36 +672,37 @@ a*u + b*v = [3, 6]</pre>
 
         <article class="concept">
           <h3>5. Span</h3>
-          <p>给定一组向量，所有可能的线性组合构成它们的 <code>span</code>。</p>
+          <p><code>span</code> 不是一次计算，而是所有可能结果组成的集合。</p>
           <pre class="formula">span(u, v) = 所有 a*u + b*v</pre>
-          <p>一个非零二维向量的 span 是穿过原点的一条直线。两个不共线二维向量的 span 是整个二维平面。</p>
+          <p>一个非零向量的 <code>span</code> 是穿过原点的一条直线；两个不共线二维向量的 <code>span</code> 是整个二维平面。</p>
         </article>
 
         <article class="concept">
           <h3>6. 线性相关与线性无关</h3>
-          <p>如果一个向量可以由其他向量线性组合出来，这组向量线性相关（linearly dependent）。</p>
+          <p>如果一个向量只是另一个向量的倍数，它没有带来新方向。这组向量线性相关（linearly dependent）。</p>
           <pre>u = [1, 2]
 v = [2, 4]
 v = 2u</pre>
-          <p>这两个向量看起来有两个箭头，但只提供了一个方向。</p>
+          <p>看起来有两个箭头，实际上只有一条可走的直线。</p>
         </article>
 
         <article class="concept">
           <h3>7. 基与坐标</h3>
-          <p>如果一组向量既能 span 整个空间，又线性无关，那么它就是这个空间的一组基（basis）。</p>
+          <p>如果一组向量既能 span 整个空间，又没有冗余方向，那么它就是这个空间的一组基（basis）。</p>
           <pre>e1 = [1, 0]
 e2 = [0, 1]
 [x, y] = x*e1 + y*e2</pre>
-          <p>坐标不是向量本身，而是向量相对于某组基的描述。</p>
+          <p>坐标不是向量本身，而是“为了得到这个向量，每个基向量各走多少份”。</p>
         </article>
 
         <article class="concept">
           <h3>8. 常见误区</h3>
           <ul>
             <li>向量不只是箭头，箭头只是二维或三维中的可视化方式。</li>
-            <li>坐标依赖基，同一个向量在不同基下可以有不同坐标。</li>
-            <li>两个向量不一定能表示整个平面，只有不共线时才可以。</li>
+            <li>坐标依赖基；同一个几何向量，换一组基，坐标通常会变。</li>
+            <li>两个向量不一定能表示整个平面；只有不共线且都不为零时才可以。</li>
             <li><code>span</code> 不是一个操作，而是所有线性组合形成的集合。</li>
+            <li>画布里的浅绿色点是有限采样，不等于完整的无限集合。</li>
           </ul>
         </article>
       </div>
@@ -508,7 +723,7 @@ v = [v1, v2]</pre>
       <p>其实就是：</p>
       <pre>a*u + b*v</pre>
       <div class="callout">
-        <p>本章最重要的一句话：线性组合 <code>a*u + b*v</code> 是线性代数的基本动作。用缩放和相加，从已有向量生成新的向量。</p>
+        <p>本章最重要的一句话：矩阵乘向量可以先理解为“用输入坐标当系数，把矩阵的列向量线性组合起来”。</p>
       </div>
     </section>
 
@@ -518,13 +733,12 @@ v = [v1, v2]</pre>
       <div class="exercise-block">
         <h3>概念题</h3>
         <ol>
-          <li>为什么说“向量是箭头”只是一个直观模型，而不是向量的完整定义？</li>
-          <li>向量加法 <code>u + v</code> 的几何意义是什么？</li>
-          <li>数乘 <code>a*v</code> 中，<code>a = 0</code>、<code>a &gt; 0</code>、<code>a &lt; 0</code> 分别会发生什么？</li>
+          <li>为什么“能相加、能缩放”比“画成箭头”更接近向量的本质？</li>
+          <li>向量加法 <code>u + v</code> 为什么可以理解成“先走 <code>u</code>，再走 <code>v</code>”？</li>
+          <li>数乘 <code>a*v</code> 中，<code>a = 0</code>、<code>a &gt; 0</code>、<code>a &lt; 0</code> 分别代表什么移动方式？</li>
           <li>用自己的话解释线性组合 <code>a*u + b*v</code>。</li>
-          <li><code>span(u, v)</code> 表示什么集合？</li>
-          <li>在二维平面中，两个非零向量什么时候只能 span 一条直线？</li>
-          <li>为什么“坐标”依赖于所选的基？</li>
+          <li>为什么 <code>span(u, v)</code> 可以理解成“能到达的地方”？</li>
+          <li>为什么坐标不是向量本身，而是相对于某组基的描述？</li>
         </ol>
       </div>
 
@@ -534,18 +748,18 @@ v = [v1, v2]</pre>
           <li>已知 <code>u = [2, 1]</code>，<code>v = [-1, 3]</code>，计算 <code>u + v</code>、<code>2u</code>、<code>-3v</code>、<code>2u - v</code>。</li>
           <li>已知 <code>u = [1, 2]</code>，<code>v = [3, 1]</code>，计算 <code>2u + 3v</code>、<code>-u + 4v</code>、<code>0.5u - 2v</code>。</li>
           <li>判断下面每组二维向量是否共线：<code>[1, 2]</code> 和 <code>[2, 4]</code>；<code>[1, 0]</code> 和 <code>[0, 1]</code>；<code>[3, -6]</code> 和 <code>[-1, 2]</code>；<code>[2, 3]</code> 和 <code>[4, 9]</code>。</li>
+          <li>已知 <code>u = [2, 1]</code>，<code>v = [1, 2]</code>，找出 <code>a,b</code>，使 <code>a*u + b*v = [5, 4]</code>。</li>
           <li>已知标准基 <code>e1 = [1, 0]</code>，<code>e2 = [0, 1]</code>，把 <code>[4, -2]</code> 写成 <code>a*e1 + b*e2</code> 的形式。</li>
-          <li>已知 <code>u = [2, 1]</code>，<code>v = [1, 2]</code>，计算 <code>3u - v</code>，并解释这个结果表示从原点出发如何移动。</li>
         </ol>
       </div>
 
       <div class="exercise-block">
         <h3>互动实验题</h3>
         <ol>
-          <li>把 <code>u</code> 和 <code>v</code> 拖成大致共线。观察浅绿色采样区域发生了什么变化，并写下原因。</li>
-          <li>分别设置 <code>a = 2, b = 0</code>；<code>a = 0, b = 2</code>；<code>a = 1, b = 1</code>；<code>a = 1, b = -1</code>，记录绿色向量的位置变化。</li>
-          <li>把 <code>u</code> 和 <code>v</code> 拖成明显不共线，再把它们拖成共线。比较两种情况下 span 的差异。</li>
-          <li>固定 <code>u</code> 和 <code>v</code>，只改变 <code>a</code>、<code>b</code>。说明系数如何控制最终向量。</li>
+          <li>切到“2 数乘”，分别设置 <code>a = 2</code>、<code>a = -1</code>、<code>a = 0</code>，观察 <code>a*u</code> 的方向和长度。</li>
+          <li>切到“5 Span”，分别点击“不共线”“共线”“只有一方向”，比较浅绿色采样形状。</li>
+          <li>切到“6 基与坐标”，拖动目标 <code>w</code>。当 <code>u</code>、<code>v</code> 不共线时，观察页面给出的 <code>a,b</code>。</li>
+          <li>在“共线”预设下拖动 <code>w</code>，找一个能到达的目标和一个不能到达的目标。</li>
         </ol>
       </div>
 
@@ -554,8 +768,8 @@ v = [v1, v2]</pre>
         <ol>
           <li>如果只允许使用一个非零向量和任意实数倍数，为什么最多只能到达一条直线？</li>
           <li>如果两个二维向量不共线，为什么它们可以到达平面上的任意点？</li>
+          <li>如果两个向量几乎共线，虽然理论上仍能 span 整个平面，为什么实际计算可能变得不稳定？</li>
           <li>如果把两个向量作为矩阵的两列，为什么矩阵乘 <code>[a, b]</code> 等价于 <code>a*u + b*v</code>？</li>
-          <li>为什么线性组合是理解矩阵乘法、线性方程组和线性变换的基础？</li>
         </ol>
       </div>
     </section>
@@ -565,13 +779,12 @@ v = [v1, v2]</pre>
       <details>
         <summary>概念题答案要点</summary>
         <ol>
-          <li>向量的核心是可以相加和缩放；箭头只是二维/三维中的可视化方式。</li>
-          <li><code>u + v</code> 表示先走 <code>u</code> 再走 <code>v</code>，最终到达的位置。</li>
-          <li><code>a &gt; 0</code> 保持方向缩放，<code>a &lt; 0</code> 反向缩放，<code>a = 0</code> 得到零向量。</li>
-          <li><code>a*u + b*v</code> 表示沿 <code>u</code> 方向走 <code>a</code> 份，再沿 <code>v</code> 方向走 <code>b</code> 份。</li>
-          <li><code>span</code> 是所有可能线性组合组成的集合。</li>
-          <li>两个非零向量共线时，它们只提供一个方向。</li>
-          <li>坐标表示“相对于某组基走多少份”，换基后份数通常会变。</li>
+          <li>箭头只是在二维/三维里的图像；向量真正重要的结构是可以相加和被数字缩放。</li>
+          <li>因为 <code>u + v</code> 把两段位移合成一段总位移，坐标上就是对应分量相加。</li>
+          <li><code>a &gt; 0</code> 同方向走，<code>a &lt; 0</code> 反方向走，<code>a = 0</code> 回到零向量。</li>
+          <li><code>a*u + b*v</code> 表示沿 <code>u</code> 走 <code>a</code> 份，沿 <code>v</code> 走 <code>b</code> 份，再合成最终位移。</li>
+          <li>因为 <code>span</code> 收集了所有可能的 <code>a*u + b*v</code>，也就是这些方向能生成的全部结果。</li>
+          <li>坐标回答的是“相对于这组基，每个基向量各用多少份”；换基后这组份数通常改变。</li>
         </ol>
       </details>
 
@@ -581,21 +794,33 @@ v = [v1, v2]</pre>
           <li><code>u + v = [1, 4]</code>，<code>2u = [4, 2]</code>，<code>-3v = [3, -9]</code>，<code>2u - v = [5, -1]</code>。</li>
           <li><code>2u + 3v = [11, 7]</code>，<code>-u + 4v = [11, 2]</code>，<code>0.5u - 2v = [-5.5, -1]</code>。</li>
           <li>共线；不共线；共线；不共线。</li>
+          <li>解方程 <code>2a + b = 5</code>、<code>a + 2b = 4</code>，得到 <code>a = 2</code>、<code>b = 1</code>。</li>
           <li><code>[4, -2] = 4*e1 - 2*e2</code>。</li>
-          <li><code>3u - v = [5, 1]</code>，表示从原点向右 5 个单位、向上 1 个单位。</li>
         </ol>
       </details>
 
       <details>
         <summary>互动实验与思考题答案要点</summary>
         <ol>
-          <li>共线时所有组合都只能沿同一方向伸缩，所以采样区域退化为直线。</li>
-          <li><code>a = 2, b = 0</code> 只沿 <code>u</code> 走；<code>a = 0, b = 2</code> 只沿 <code>v</code> 走；<code>a = 1, b = 1</code> 是两者相加；<code>a = 1, b = -1</code> 是沿 <code>u</code> 走并抵消一部分 <code>v</code> 方向。</li>
-          <li>一个非零向量只能提供一个方向，任意倍数仍在同一条线上。</li>
+          <li>数乘只改变沿同一方向走多少份；负数会反向，零会回到原点。</li>
+          <li>不共线时采样像一片区域；共线或只有一方向时采样退化为穿过原点的一条线。</li>
+          <li>不共线时任意目标 <code>w</code> 都有唯一的 <code>a,b</code>；共线时只有落在同一直线上的目标可到达。</li>
+          <li>一个非零向量的所有倍数仍在同一条线上，所以最多只能到达一条直线。</li>
           <li>两个不共线向量提供两个独立方向，在二维平面中可以组合出任意位置。</li>
+          <li>几乎共线时两个方向提供的信息非常接近，为了到达某些点需要很大的正负系数互相抵消，计算对微小误差更敏感。</li>
           <li>矩阵的两列就是两个输出方向，乘以 <code>[a, b]</code> 等于分别按 <code>a</code>、<code>b</code> 缩放两列再相加。</li>
         </ol>
       </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页按“先列学习卡点，再查外部资料，再回到本项目重组”的方式组织。调研重点不是复制讲法，而是提炼哪些问题最能帮助读者形成直觉。</p>
+      <ul class="source-list">
+        <li>直觉线索：把 <code>span</code> 讲成所有线性组合能到达的集合，参考 <a href="https://www.3blue1brown.com/lessons/span">3Blue1Brown 的 span 讲解</a>。</li>
+        <li>概念校准：线性组合、span、basis、linear independence 是连续的一组概念，参考 <a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">MIT OCW 18.06 Linear Algebra</a>。</li>
+        <li>练习组织：从小数值例子过渡到概念判断，参考 <a href="https://www.khanacademy.org/math/linear-algebra">Khan Academy Linear Algebra</a> 的学习路径。</li>
+      </ul>
     </section>
   </main>
 
@@ -604,18 +829,104 @@ v = [v1, v2]</pre>
     const ctx = canvas.getContext("2d");
     const aSlider = document.getElementById("aSlider");
     const bSlider = document.getElementById("bSlider");
+    const wXSlider = document.getElementById("wXSlider");
+    const wYSlider = document.getElementById("wYSlider");
     const aValue = document.getElementById("aValue");
     const bValue = document.getElementById("bValue");
+    const wXValue = document.getElementById("wXValue");
+    const wYValue = document.getElementById("wYValue");
     const readout = document.getElementById("readout");
     const resetButton = document.getElementById("resetButton");
+    const modeGuide = document.getElementById("modeGuide");
+    const statusText = document.getElementById("statusText");
+    const detValue = document.getElementById("detValue");
+    const targetReach = document.getElementById("targetReach");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const presetButtons = document.querySelectorAll("[data-preset]");
+
+    const ZERO_EPS = 0.04;
+    const AREA_EPS = 0.08;
+
+    const modeGuides = {
+      vectors: {
+        title: "第 1 步：先看对象",
+        body: "向量可以先想成一次移动。拖动 u 和 v 的端点，观察坐标如何描述“向右多少、向上多少”。",
+        task: "任务：把 u 拖到 [2,1] 附近，把 v 拖到 [-1,2] 附近。"
+      },
+      scalars: {
+        title: "第 2 步：看数乘",
+        body: "系数表示沿同一个方向走多少份。正数同向，负数反向，0 回到原点。",
+        task: "任务：把 a 改成 2、-1、0，观察 a*u 的方向和长度。"
+      },
+      addition: {
+        title: "第 3 步：看相加",
+        body: "向量相加就是把两段移动首尾相接。虚线平行四边形展示了两段移动如何合成绿色结果。",
+        task: "任务：固定 u、v，把 a 和 b 都设成 1，再比较绿色向量和虚线边。"
+      },
+      combo: {
+        title: "第 4 步：线性组合",
+        body: "线性组合就是先缩放各个方向，再把缩放后的移动相加：a*u + b*v。",
+        task: "任务：只改 a、b，不拖 u、v，解释绿色结果为什么移动。"
+      },
+      span: {
+        title: "第 5 步：Span 是能到达的集合",
+        body: "浅绿色点展示很多组系数得到的结果。它们只是有限采样，用来观察 span 的形状。",
+        task: "任务：点击“不共线”“共线”“只有一方向”，比较采样区域如何变化。"
+      },
+      basis: {
+        title: "第 6 步：基与坐标",
+        body: "如果 u 和 v 不共线，它们就是二维平面的一组基。目标 w 的坐标就是找到 a、b，使 w = a*u + b*v。",
+        task: "任务：拖动橙色 w，看右侧是否能给出唯一的 a、b。"
+      }
+    };
 
     const state = {
       u: { x: 2, y: 1 },
       v: { x: -1, y: 2 },
+      w: { x: 3, y: 2 },
       a: 1,
       b: 1,
       dragTarget: null,
+      mode: "vectors",
       scale: 58
+    };
+
+    const presets = {
+      standard: {
+        u: { x: 1, y: 0 },
+        v: { x: 0, y: 1 },
+        w: { x: 3, y: 2 },
+        a: 3,
+        b: 2
+      },
+      independent: {
+        u: { x: 2, y: 1 },
+        v: { x: -1, y: 2 },
+        w: { x: 1, y: 3 },
+        a: 1,
+        b: 1
+      },
+      collinear: {
+        u: { x: 1.4, y: 0.8 },
+        v: { x: 2.8, y: 1.6 },
+        w: { x: 4.2, y: 2.4 },
+        a: 1,
+        b: 1
+      },
+      near: {
+        u: { x: 2, y: 1 },
+        v: { x: 4.1, y: 2.2 },
+        w: { x: 1, y: 3 },
+        a: 1,
+        b: -0.25
+      },
+      single: {
+        u: { x: 0, y: 0 },
+        v: { x: 2, y: 1 },
+        w: { x: 4, y: 2 },
+        a: 1,
+        b: 2
+      }
     };
 
     function resizeCanvas() {
@@ -654,12 +965,94 @@ v = [v1, v2]</pre>
       return { x: p.x + q.x, y: p.y + q.y };
     }
 
+    function subtract(p, q) {
+      return { x: p.x - q.x, y: p.y - q.y };
+    }
+
     function scale(c, p) {
       return { x: c * p.x, y: c * p.y };
     }
 
     function combo() {
       return add(scale(state.a, state.u), scale(state.b, state.v));
+    }
+
+    function norm(p) {
+      return Math.hypot(p.x, p.y);
+    }
+
+    function determinant() {
+      return state.u.x * state.v.y - state.u.y * state.v.x;
+    }
+
+    function cross(p, q) {
+      return p.x * q.y - p.y * q.x;
+    }
+
+    function dot(p, q) {
+      return p.x * q.x + p.y * q.y;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function spanType() {
+      const uLength = norm(state.u);
+      const vLength = norm(state.v);
+      const area = Math.abs(determinant());
+
+      if (uLength < ZERO_EPS && vLength < ZERO_EPS) {
+        return {
+          kind: "point",
+          title: "只能到达原点",
+          detail: "u 和 v 都接近零向量，任何缩放和相加仍然只能得到零向量。"
+        };
+      }
+
+      if (uLength < ZERO_EPS || vLength < ZERO_EPS || area < AREA_EPS) {
+        return {
+          kind: "line",
+          title: "只能到达一条直线",
+          detail: "两个方向没有提供独立的二维方向，span 退化成穿过原点的直线。"
+        };
+      }
+
+      return {
+        kind: "plane",
+        title: "可以到达整个二维平面",
+        detail: "u 和 v 不共线，提供了两个独立方向，因此任意二维目标都能唯一表示。"
+      };
+    }
+
+    function solveTarget() {
+      const det = determinant();
+      const uLength = norm(state.u);
+      const vLength = norm(state.v);
+
+      if (Math.abs(det) >= AREA_EPS) {
+        return {
+          kind: "unique",
+          a: (state.w.x * state.v.y - state.w.y * state.v.x) / det,
+          b: (state.u.x * state.w.y - state.u.y * state.w.x) / det
+        };
+      }
+
+      const direction = uLength >= ZERO_EPS ? state.u : state.v;
+      if (norm(direction) < ZERO_EPS) {
+        return norm(state.w) < ZERO_EPS
+          ? { kind: "point-reachable" }
+          : { kind: "unreachable" };
+      }
+
+      if (Math.abs(cross(direction, state.w)) > AREA_EPS) {
+        return { kind: "unreachable" };
+      }
+
+      return {
+        kind: "line-reachable",
+        t: dot(state.w, direction) / dot(direction, direction)
+      };
     }
 
     function drawGrid() {
@@ -708,19 +1101,36 @@ v = [v1, v2]</pre>
       }
     }
 
-    function drawVector(vector, color, label, width = 3) {
-      const start = toScreen({ x: 0, y: 0 });
-      const end = toScreen(vector);
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
       const angle = Math.atan2(end.y - start.y, end.x - start.x);
       const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
 
+      ctx.save();
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+        ctx.fillText(label, end.x + 8, end.y - 8);
+        ctx.restore();
+        return;
+      }
+
       ctx.beginPath();
       ctx.moveTo(start.x, start.y);
       ctx.lineTo(end.x, end.y);
       ctx.stroke();
+      ctx.setLineDash([]);
 
       ctx.beginPath();
       ctx.moveTo(end.x, end.y);
@@ -731,6 +1141,7 @@ v = [v1, v2]</pre>
 
       ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
       ctx.fillText(label, end.x + 8, end.y - 8);
+      ctx.restore();
     }
 
     function drawParallelogram() {
@@ -754,27 +1165,111 @@ v = [v1, v2]</pre>
       ctx.setLineDash([]);
     }
 
+    function drawScaledPieces(tailToHead = false) {
+      const au = scale(state.a, state.u);
+      const bv = scale(state.b, state.v);
+      drawVector(au, getCss("--u"), "a*u", 2);
+      drawVector(bv, getCss("--v"), "b*v", 2, tailToHead ? au : { x: 0, y: 0 }, tailToHead);
+    }
+
+    function drawTarget() {
+      drawVector(state.w, getCss("--target"), "w", 3);
+      const end = toScreen(state.w);
+      ctx.save();
+      ctx.strokeStyle = getCss("--target");
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(end.x, end.y, 9, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     function draw() {
       drawGrid();
-      drawSpanSamples();
-      drawParallelogram();
+      if (state.mode === "span" || state.mode === "basis" || state.mode === "combo") {
+        drawSpanSamples();
+      }
+      if (state.mode === "addition" || state.mode === "combo" || state.mode === "basis") {
+        drawParallelogram();
+      }
+      if (state.mode === "scalars" || state.mode === "addition" || state.mode === "combo") {
+        drawScaledPieces(state.mode !== "scalars");
+      }
       drawVector(state.u, getCss("--u"), "u");
       drawVector(state.v, getCss("--v"), "v");
-      drawVector(combo(), getCss("--combo"), "a*u + b*v", 4);
+      if (state.mode !== "vectors") {
+        drawVector(combo(), getCss("--combo"), "a*u + b*v", 4);
+      }
+      if (state.mode === "basis") {
+        drawTarget();
+      }
       updateReadout();
     }
 
     function updateReadout() {
+      syncControls();
+      renderModeGuide();
+      updateStatus();
+
       aValue.textContent = state.a.toFixed(2);
       bValue.textContent = state.b.toFixed(2);
+      wXValue.textContent = state.w.x.toFixed(2);
+      wYValue.textContent = state.w.y.toFixed(2);
       const c = combo();
+      const au = scale(state.a, state.u);
+      const bv = scale(state.b, state.v);
       readout.innerHTML = [
         `u = [${fmt(state.u.x)}, ${fmt(state.u.y)}]`,
         `v = [${fmt(state.v.x)}, ${fmt(state.v.y)}]`,
-        `a*u = [${fmt(state.a * state.u.x)}, ${fmt(state.a * state.u.y)}]`,
-        `b*v = [${fmt(state.b * state.v.x)}, ${fmt(state.b * state.v.y)}]`,
-        `a*u + b*v = [${fmt(c.x)}, ${fmt(c.y)}]`
+        `w = [${fmt(state.w.x)}, ${fmt(state.w.y)}]`,
+        `a*u = ${fmt(state.a)} * u = [${fmt(au.x)}, ${fmt(au.y)}]`,
+        `b*v = ${fmt(state.b)} * v = [${fmt(bv.x)}, ${fmt(bv.y)}]`,
+        `a*u + b*v = [${fmt(c.x)}, ${fmt(c.y)}]`,
+        `距离 w = ${fmt(norm(subtract(c, state.w)))}`
       ].join("<br>");
+    }
+
+    function syncControls() {
+      aSlider.value = String(state.a);
+      bSlider.value = String(state.b);
+      wXSlider.value = String(state.w.x);
+      wYSlider.value = String(state.w.y);
+      modeButtons.forEach((button) => {
+        const isActive = button.dataset.mode === state.mode;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+
+    function updateStatus() {
+      const type = spanType();
+      const det = determinant();
+      const solution = solveTarget();
+      statusText.textContent = type.title;
+      detValue.textContent = `方向面积 u.x*v.y - u.y*v.x = ${fmt(det)}。${type.detail}`;
+
+      if (solution.kind === "unique") {
+        targetReach.textContent = `目标 w 可到达，且坐标唯一：[a, b] = [${fmt(solution.a)}, ${fmt(solution.b)}]。`;
+      } else if (solution.kind === "line-reachable") {
+        targetReach.textContent = `目标 w 在这条 span 上，可到达；由于方向冗余，表示方式不唯一。`;
+      } else if (solution.kind === "point-reachable") {
+        targetReach.textContent = "目标 w 是零向量，可到达；但所有组合仍然只是零向量。";
+      } else {
+        targetReach.textContent = "目标 w 不在当前 span 中，靠这组方向无法到达。";
+      }
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
     }
 
     function fmt(value) {
@@ -804,15 +1299,56 @@ v = [v1, v2]</pre>
       return Math.hypot(p.x - q.x, p.y - q.y);
     }
 
+    function setState(next) {
+      state.u = { ...next.u };
+      state.v = { ...next.v };
+      state.w = { ...next.w };
+      state.a = next.a;
+      state.b = next.b;
+      draw();
+    }
+
+    function randomPreset() {
+      let u;
+      let v;
+      do {
+        u = {
+          x: Number((Math.random() * 5 - 2.5).toFixed(1)),
+          y: Number((Math.random() * 5 - 2.5).toFixed(1))
+        };
+        v = {
+          x: Number((Math.random() * 5 - 2.5).toFixed(1)),
+          y: Number((Math.random() * 5 - 2.5).toFixed(1))
+        };
+      } while (Math.abs(u.x * v.y - u.y * v.x) < 0.6 || norm(u) < 0.8 || norm(v) < 0.8);
+
+      return {
+        u,
+        v,
+        w: {
+          x: Number((Math.random() * 6 - 3).toFixed(1)),
+          y: Number((Math.random() * 6 - 3).toFixed(1))
+        },
+        a: Number((Math.random() * 4 - 2).toFixed(1)),
+        b: Number((Math.random() * 4 - 2).toFixed(1))
+      };
+    }
+
     canvas.addEventListener("pointerdown", (event) => {
       const point = pointerPoint(event);
-      const uEnd = toScreen(state.u);
-      const vEnd = toScreen(state.v);
-      const uDistance = distance(point, uEnd);
-      const vDistance = distance(point, vEnd);
+      const candidates = [
+        { name: "u", distance: distance(point, toScreen(state.u)) },
+        { name: "v", distance: distance(point, toScreen(state.v)) }
+      ];
 
-      if (uDistance < 18 || vDistance < 18) {
-        state.dragTarget = uDistance <= vDistance ? "u" : "v";
+      if (state.mode === "basis") {
+        candidates.push({ name: "w", distance: distance(point, toScreen(state.w)) });
+      }
+
+      candidates.sort((left, right) => left.distance - right.distance);
+
+      if (candidates[0].distance < 20) {
+        state.dragTarget = candidates[0].name;
         canvas.setPointerCapture(event.pointerId);
       }
     });
@@ -822,9 +1358,10 @@ v = [v1, v2]</pre>
         return;
       }
       const world = toWorld(pointerPoint(event));
+      const limit = state.dragTarget === "w" ? 5 : 5;
       state[state.dragTarget] = {
-        x: Math.max(-5, Math.min(5, world.x)),
-        y: Math.max(-5, Math.min(5, world.y))
+        x: clamp(world.x, -limit, limit),
+        y: clamp(world.y, -limit, limit)
       };
       draw();
     });
@@ -837,23 +1374,69 @@ v = [v1, v2]</pre>
       state.dragTarget = null;
     });
 
-    aSlider.addEventListener("input", () => {
-      state.a = Number(aSlider.value);
-      draw();
+    function bindSlider(slider, update) {
+      ["input", "change"].forEach((eventName) => {
+        slider.addEventListener(eventName, () => {
+          update(Number(slider.value));
+          draw();
+        });
+      });
+    }
+
+    bindSlider(aSlider, (value) => {
+      state.a = value;
     });
 
-    bSlider.addEventListener("input", () => {
-      state.b = Number(bSlider.value);
+    bindSlider(bSlider, (value) => {
+      state.b = value;
+    });
+
+    bindSlider(wXSlider, (value) => {
+      state.w.x = value;
+    });
+
+    bindSlider(wYSlider, (value) => {
+      state.w.y = value;
+    });
+
+    function activateMode(mode) {
+      state.mode = mode;
       draw();
+    }
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const preset = button.dataset.preset === "random"
+          ? randomPreset()
+          : presets[button.dataset.preset];
+        setState(preset);
+      });
     });
 
     resetButton.addEventListener("click", () => {
       state.u = { x: 2, y: 1 };
       state.v = { x: -1, y: 2 };
+      state.w = { x: 3, y: 2 };
       state.a = 1;
       state.b = 1;
-      aSlider.value = "1";
-      bSlider.value = "1";
+      state.mode = "vectors";
       draw();
     });
 
