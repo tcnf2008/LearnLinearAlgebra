@@ -1,0 +1,1473 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>08. SVD 与 PCA</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --grid: #d8deea;
+      --axis: #6f7b91;
+      --border: #d8deea;
+      --code: #243047;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --cyan: #0891b2;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --violet-soft: rgba(124, 58, 237, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #bfdbfe;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .canvas-wrap,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: calc(100% - 32px);
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 16px;
+    }
+
+    .control-section + .control-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .controls h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
+    }
+
+    button {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f5fa;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .status-card,
+    .readout,
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-card {
+      font-family: inherit;
+    }
+
+    .status-card p {
+      margin: 0;
+    }
+
+    .status-card p + p {
+      margin-top: 6px;
+    }
+
+    .status-title {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #eef2f7;
+      border-radius: 5px;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      margin: 12px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    details {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .exercise-block {
+      margin-top: 16px;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-left: 4px solid var(--violet);
+      background: #f5f3ff;
+      border-radius: 8px;
+      color: #35245f;
+    }
+
+    .callout p {
+      color: #4c3b75;
+    }
+
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .concept-grid,
+      .learning-path,
+      .focus-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .canvas-wrap {
+        min-height: 520px;
+      }
+
+      canvas {
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .legend {
+        position: static;
+        border-width: 1px 0 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>08. SVD 与 PCA</h1>
+      <p class="lead">本页把 SVD 和 PCA 放在同一条直觉线上：SVD 说明任意矩阵如何把单位圆变成椭圆，PCA 则在数据云里寻找方差最大的方向，并把数据投影到这个方向上。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">少量练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>一个复杂矩阵变换或一团高维数据，能不能拆成少数几个最重要的正交方向？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>SVD：</strong>任意矩阵都可以写成 <code>A=UΣV^T</code>。</li>
+        <li><strong>几何：</strong><code>V^T</code> 先换输入方向，<code>Σ</code> 沿坐标轴缩放，<code>U</code> 再换输出方向。</li>
+        <li><strong>奇异值：</strong><code>σ1, σ2, ...</code> 是单位球被拉伸成椭圆或椭球后的半轴长度。</li>
+        <li><strong>低秩近似：</strong>只保留最大的奇异值，就保留了最强的变换方向，舍弃弱方向。</li>
+        <li><strong>PCA：</strong>对中心化数据，协方差矩阵的特征方向就是 principal components。</li>
+        <li><strong>降维：</strong>把数据投影到前几个主成分上，可以用较少坐标保留最多方差。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：单位圆、椭圆和主成分</h2>
+      <p>前两个模式调整矩阵 <code>A</code>，观察单位圆如何变成椭圆；后两个模式拖动数据点，观察 PCA 主轴和投影。蓝色表示第一主方向，红色表示第二主方向，绿色表示保留后的近似。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-svd" aria-current="page" data-mode="svd">1 SVD 几何</a>
+        <a class="mode-tab" href="#mode-rank" data-mode="rank">2 低秩近似</a>
+        <a class="mode-tab" href="#mode-pca" data-mode="pca">3 PCA 主轴</a>
+        <a class="mode-tab" href="#mode-project" data-mode="project">4 PCA 投影</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
+
+      <div class="workspace">
+        <div class="canvas-wrap" aria-label="SVD 与 PCA 交互画布">
+          <canvas id="scene" width="820" height="620"></canvas>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--grid);"></i>坐标网格</span>
+            <span><i class="swatch" style="background: var(--cyan);"></i>A 后图形</span>
+            <span><i class="swatch" style="background: var(--blue);"></i>第一方向</span>
+            <span><i class="swatch" style="background: var(--red);"></i>第二方向</span>
+            <span><i class="swatch" style="background: var(--amber);"></i>数据点</span>
+            <span><i class="swatch" style="background: var(--green);"></i>近似/投影</span>
+            <span><i class="swatch" style="background: var(--violet);"></i>残差信息</span>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle"></p>
+              <p id="statusDetail"></p>
+              <p id="varianceDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>矩阵 A</h3>
+            <label>
+              <span>a = A11 = <strong class="value" id="aValue">1.60</strong></span>
+              <input id="aSlider" type="range" min="-3" max="3" step="0.05" value="1.6">
+            </label>
+            <label>
+              <span>b = A12 = <strong class="value" id="bValue">0.90</strong></span>
+              <input id="bSlider" type="range" min="-3" max="3" step="0.05" value="0.9">
+            </label>
+            <label>
+              <span>c = A21 = <strong class="value" id="cValue">0.40</strong></span>
+              <input id="cSlider" type="range" min="-3" max="3" step="0.05" value="0.4">
+            </label>
+            <label>
+              <span>d = A22 = <strong class="value" id="dValue">1.10</strong></span>
+              <input id="dSlider" type="range" min="-3" max="3" step="0.05" value="1.1">
+            </label>
+            <label>
+              <span>保留奇异值个数 k = <strong class="value" id="rankValue">1</strong></span>
+              <input id="rankSlider" type="range" min="1" max="2" step="1" value="1">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>典型矩阵</h3>
+            <div class="preset-grid">
+              <button type="button" data-matrix="stretch">旋转拉伸</button>
+              <button type="button" data-matrix="diagonal">轴向缩放</button>
+              <button type="button" data-matrix="shear">剪切</button>
+              <button type="button" data-matrix="rankOne">近似 rank 1</button>
+              <button type="button" data-matrix="reflect">翻转缩放</button>
+              <button type="button" data-matrix="zeroSmall">弱方向很小</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>PCA 数据</h3>
+            <div class="preset-grid">
+              <button type="button" data-points="slanted">斜向云</button>
+              <button type="button" data-points="vertical">竖向云</button>
+              <button type="button" data-points="round">近似圆形</button>
+              <button type="button" data-points="outlier">带离群点</button>
+            </div>
+            <p class="mini-note">在 PCA 模式下可以直接拖动橙色数据点。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>当前计算</h3>
+            <div class="readout" id="readout"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. SVD 是什么</h3>
+          <p>SVD 把任意矩阵拆成三个部分：</p>
+          <pre class="formula">A = U Σ V^T</pre>
+          <p><code>V^T</code> 选择输入中的正交方向，<code>Σ</code> 沿这些方向缩放，<code>U</code> 把结果放到输出空间的正交方向上。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 奇异值表示什么</h3>
+          <p>把单位圆喂给矩阵，输出通常是一条椭圆。椭圆的长半轴和短半轴长度就是奇异值 <code>σ1</code>、<code>σ2</code>。</p>
+          <p>如果某个奇异值接近 0，说明矩阵几乎把某个方向压没了；如果它正好是 0，矩阵的 rank 会下降。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 为什么看 A^T A</h3>
+          <p>右奇异向量来自 <code>A^T A</code> 的特征向量：</p>
+          <pre>A^T A v_i = σ_i^2 v_i</pre>
+          <p>因为 <code>||Av||^2 = v^T A^T A v</code>，所以寻找被拉得最长的输入方向，等价于研究 <code>A^T A</code>。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 低秩近似</h3>
+          <p>如果只保留最大的 <code>k</code> 个奇异值，就得到 rank <code>k</code> 的近似矩阵：</p>
+          <pre>A_k = U_k Σ_k V_k^T</pre>
+          <p>直觉上，这保留了最强的拉伸方向，舍弃弱方向。在图像压缩、推荐系统和噪声过滤里都很常见。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. PCA 为什么是投影</h3>
+          <p>PCA 先把数据中心化，再找让投影方差最大的方向。第一主成分是数据云最“长”的方向。</p>
+          <pre>Cov = X_centered^T X_centered / n</pre>
+          <p>协方差矩阵的特征向量给出主成分，特征值给出沿这些方向的方差。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. SVD 和 PCA 的关系</h3>
+          <p>对中心化数据矩阵 <code>X</code> 做 SVD：</p>
+          <pre>X = U Σ V^T</pre>
+          <p><code>V</code> 的列就是 PCA 的主成分方向，<code>Σ^2</code> 与各主成分解释的方差成正比。PCA 可以看成 SVD 在数据分析中的一个核心应用。</p>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>本章最重要的一句话：SVD 找矩阵最强的输入/输出方向，PCA 找数据最强的方差方向；两者都在用正交方向压缩复杂结构。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>少量练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么奇异值可以理解成单位圆变成椭圆后的半轴长度？</li>
+          <li>PCA 为什么要先把数据中心化？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>设 <code>A=[[3,0],[0,1]]</code>，直接说出两个奇异值和右奇异方向。</li>
+          <li>如果中心化数据的协方差矩阵是 <code>[[4,0],[0,1]]</code>，第一主成分方向是什么？解释方差保留比例。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>切到“1 SVD 几何”，点击“近似 rank 1”，观察单位圆如何几乎被压成线。</li>
+          <li>切到“4 PCA 投影”，拖动一个数据点，观察第一主成分和解释方差比例如何变化。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>为什么只保留最大的奇异值通常可以过滤掉弱信号或噪声，但也可能丢掉少数重要结构？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>单位圆中每个方向长度都是 1；矩阵作用后，被拉得最长和次长的正交方向形成椭圆半轴，长度就是奇异值。</li>
+          <li>不中心化时，PCA 会优先解释数据整体离原点的位置，而不是数据自身的展开方向。</li>
+          <li>奇异值是 <code>3</code> 和 <code>1</code>，右奇异方向分别是 x 轴和 y 轴。</li>
+          <li>第一主成分是 x 轴方向；总方差是 <code>4+1=5</code>，第一主成分保留 <code>4/5=80%</code>。</li>
+          <li>最大奇异值对应能量或方差最大的结构，所以弱方向可能是噪声；但如果小方向承载罕见但关键的信息，截断就会丢失它。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“单位圆变椭圆 -> 奇异值 -> 低秩近似 -> PCA 方差主轴”的顺序，让 SVD 先成为几何分解，再自然过渡到数据降维。</p>
+      <ul class="source-list">
+        <li>概念校准：SVD 的定义、奇异值和低秩近似，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/lecture-29-singular-value-decomposition/">MIT OCW: Singular Value Decomposition</a>。</li>
+        <li>PCA 关系：用 SVD 理解低秩近似和数据矩阵分解，参考 <a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/resources/lecture-6-singular-value-decomposition-svd/">MIT OCW 18.065: Singular Value Decomposition</a>。</li>
+        <li>直觉线索：单位圆到椭圆的交互式解释，参考 <a href="https://mathigon.org/course/linear-algebra/singular-value-decomposition">Mathigon: Singular Value Decomposition</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const sliders = {
+      a: document.getElementById("aSlider"),
+      b: document.getElementById("bSlider"),
+      c: document.getElementById("cSlider"),
+      d: document.getElementById("dSlider"),
+      rank: document.getElementById("rankSlider")
+    };
+
+    const values = {
+      a: document.getElementById("aValue"),
+      b: document.getElementById("bValue"),
+      c: document.getElementById("cValue"),
+      d: document.getElementById("dValue"),
+      rank: document.getElementById("rankValue")
+    };
+
+    const readout = document.getElementById("readout");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusDetail = document.getElementById("statusDetail");
+    const varianceDetail = document.getElementById("varianceDetail");
+    const modeGuide = document.getElementById("modeGuide");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const matrixButtons = document.querySelectorAll("[data-matrix]");
+    const pointButtons = document.querySelectorAll("[data-points]");
+
+    const EPS = 0.0001;
+    const state = {
+      A: { a: 1.6, b: 0.9, c: 0.4, d: 1.1 },
+      rank: 1,
+      points: [
+        { x: -3.5, y: -2.0 },
+        { x: -2.1, y: -1.0 },
+        { x: -0.8, y: -0.2 },
+        { x: 0.6, y: 0.4 },
+        { x: 1.8, y: 1.4 },
+        { x: 3.2, y: 2.1 }
+      ],
+      mode: "svd",
+      dragTarget: null,
+      scale: 54
+    };
+
+    const matrixPresets = {
+      stretch: { a: 1.6, b: 0.9, c: 0.4, d: 1.1 },
+      diagonal: { a: 2.4, b: 0, c: 0, d: 0.7 },
+      shear: { a: 1, b: 1.4, c: 0, d: 1 },
+      rankOne: { a: 1.6, b: 0.8, c: 2.0, d: 1.0 },
+      reflect: { a: -1.3, b: 0.4, c: 0.2, d: 1.1 },
+      zeroSmall: { a: 1.9, b: 0.2, c: 0.1, d: 0.05 }
+    };
+
+    const pointPresets = {
+      slanted: [
+        { x: -3.5, y: -2.0 },
+        { x: -2.1, y: -1.0 },
+        { x: -0.8, y: -0.2 },
+        { x: 0.6, y: 0.4 },
+        { x: 1.8, y: 1.4 },
+        { x: 3.2, y: 2.1 }
+      ],
+      vertical: [
+        { x: -0.4, y: -3.0 },
+        { x: 0.1, y: -1.8 },
+        { x: -0.2, y: -0.5 },
+        { x: 0.3, y: 0.8 },
+        { x: -0.1, y: 2.0 },
+        { x: 0.4, y: 3.3 }
+      ],
+      round: [
+        { x: -1.8, y: 0.4 },
+        { x: -0.9, y: -1.4 },
+        { x: 0.2, y: 1.5 },
+        { x: 1.2, y: -0.8 },
+        { x: 1.8, y: 0.9 },
+        { x: -0.1, y: -0.1 }
+      ],
+      outlier: [
+        { x: -3.1, y: -1.4 },
+        { x: -1.7, y: -0.6 },
+        { x: -0.4, y: 0.0 },
+        { x: 0.8, y: 0.8 },
+        { x: 1.9, y: 1.4 },
+        { x: 3.4, y: -2.6 }
+      ]
+    };
+
+    const modeGuides = {
+      svd: {
+        title: "第 1 步：单位圆如何变成椭圆",
+        body: "灰色单位圆经过 A 后变成青色椭圆。蓝色和红色输入方向是右奇异向量，输出半轴长度是奇异值。",
+        task: "任务：调整矩阵，观察 σ1 和 σ2 如何控制椭圆长短轴。"
+      },
+      rank: {
+        title: "第 2 步：只保留最大的奇异值",
+        body: "绿色图形是 rank-k 近似矩阵 Ak 的输出。k=1 时只保留最强方向，弱方向被舍弃。",
+        task: "任务：点击“近似 rank 1”，比较原椭圆和绿色近似图形。"
+      },
+      pca: {
+        title: "第 3 步：PCA 找数据云最长方向",
+        body: "橙色点先中心化。蓝色主轴是方差最大的方向，红色主轴与它正交。",
+        task: "任务：切换点云预设，观察第一主成分如何跟随数据云方向变化。"
+      },
+      project: {
+        title: "第 4 步：投影到主成分上做降维",
+        body: "绿色点是把数据投影到第一主成分后的近似。紫色虚线是被舍弃的残差方向。",
+        task: "任务：拖动一个数据点，观察解释方差比例和投影残差如何变化。"
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function origin() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function toScreen(vector) {
+      const o = origin();
+      return {
+        x: o.x + vector.x * state.scale,
+        y: o.y - vector.y * state.scale
+      };
+    }
+
+    function toWorld(point) {
+      const o = origin();
+      return {
+        x: (point.x - o.x) / state.scale,
+        y: (o.y - point.y) / state.scale
+      };
+    }
+
+    function pointerPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function matVec(M, v) {
+      return {
+        x: M.a * v.x + M.b * v.y,
+        y: M.c * v.x + M.d * v.y
+      };
+    }
+
+    function matFromOuter(sigma, u, v) {
+      return {
+        a: sigma * u.x * v.x,
+        b: sigma * u.x * v.y,
+        c: sigma * u.y * v.x,
+        d: sigma * u.y * v.y
+      };
+    }
+
+    function addMat(A, B) {
+      return { a: A.a + B.a, b: A.b + B.b, c: A.c + B.c, d: A.d + B.d };
+    }
+
+    function svdApprox(svd, k) {
+      let M = { a: 0, b: 0, c: 0, d: 0 };
+      if (k >= 1) {
+        M = addMat(M, matFromOuter(svd.s1, svd.u1, svd.v1));
+      }
+      if (k >= 2) {
+        M = addMat(M, matFromOuter(svd.s2, svd.u2, svd.v2));
+      }
+      return M;
+    }
+
+    function transposeTimesA(M) {
+      return {
+        a: M.a * M.a + M.c * M.c,
+        b: M.a * M.b + M.c * M.d,
+        c: M.a * M.b + M.c * M.d,
+        d: M.b * M.b + M.d * M.d
+      };
+    }
+
+    function eigenSym2(M) {
+      const trace = M.a + M.d;
+      const diff = M.a - M.d;
+      const root = Math.sqrt(Math.max(0, diff * diff + 4 * M.b * M.b));
+      const l1 = (trace + root) / 2;
+      const l2 = (trace - root) / 2;
+      return [
+        { value: Math.max(l1, 0), vector: eigenvectorSym(M, l1) },
+        { value: Math.max(l2, 0), vector: eigenvectorSym(M, l2) }
+      ];
+    }
+
+    function eigenvectorSym(M, lambda) {
+      if (Math.abs(M.b) > EPS) {
+        return normalize({ x: M.b, y: lambda - M.a });
+      }
+      if (M.a >= M.d) {
+        return Math.abs(lambda - M.a) <= Math.abs(lambda - M.d) ? { x: 1, y: 0 } : { x: 0, y: 1 };
+      }
+      return Math.abs(lambda - M.d) <= Math.abs(lambda - M.a) ? { x: 0, y: 1 } : { x: 1, y: 0 };
+    }
+
+    function svd2x2(M) {
+      const eig = eigenSym2(transposeTimesA(M));
+      let v1 = normalize(eig[0].vector);
+      let v2 = normalize(eig[1].vector);
+      if (Math.abs(dot(v1, v2)) > 0.1 || norm(v2) < EPS) {
+        v2 = perp(v1);
+      }
+      const s1 = Math.sqrt(Math.max(0, eig[0].value));
+      const s2 = Math.sqrt(Math.max(0, eig[1].value));
+      let u1 = s1 > EPS ? normalize(matVec(M, v1)) : { x: 1, y: 0 };
+      let u2 = s2 > EPS ? normalize(matVec(M, v2)) : perp(u1);
+      if (Math.abs(dot(u1, u2)) > 0.1 || norm(u2) < EPS) {
+        u2 = perp(u1);
+      }
+      return { s1, s2, v1, v2, u1, u2 };
+    }
+
+    function pcaInfo(points) {
+      const mean = {
+        x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+        y: points.reduce((sum, p) => sum + p.y, 0) / points.length
+      };
+      const centered = points.map((p) => sub(p, mean));
+      const cov = centered.reduce((acc, p) => ({
+        a: acc.a + p.x * p.x,
+        b: acc.b + p.x * p.y,
+        c: acc.c + p.x * p.y,
+        d: acc.d + p.y * p.y
+      }), { a: 0, b: 0, c: 0, d: 0 });
+      cov.a /= points.length;
+      cov.b /= points.length;
+      cov.c /= points.length;
+      cov.d /= points.length;
+      const eig = eigenSym2(cov);
+      const pc1 = normalize(eig[0].vector);
+      const pc2 = perp(pc1);
+      const total = eig[0].value + eig[1].value;
+      const ratio = total > EPS ? eig[0].value / total : 0;
+      return { mean, cov, pc1, pc2, lambda1: eig[0].value, lambda2: eig[1].value, ratio };
+    }
+
+    function drawBaseGrid() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const o = origin();
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = getCss("--grid");
+
+      for (let x = o.x % state.scale; x <= width; x += state.scale) {
+        lineScreen({ x, y: 0 }, { x, y: height });
+      }
+      for (let y = o.y % state.scale; y <= height; y += state.scale) {
+        lineScreen({ x: 0, y }, { x: width, y });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.5;
+      lineScreen({ x: 0, y: o.y }, { x: width, y: o.y });
+      lineScreen({ x: o.x, y: 0 }, { x: o.x, y: height });
+
+      ctx.fillStyle = getCss("--axis");
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      for (let i = -6; i <= 6; i += 1) {
+        if (i !== 0) {
+          const xPoint = toScreen({ x: i, y: 0 });
+          const yPoint = toScreen({ x: 0, y: i });
+          ctx.fillText(String(i), xPoint.x - 4, o.y + 16);
+          ctx.fillText(String(i), o.x + 8, yPoint.y + 4);
+        }
+      }
+    }
+
+    function drawSvdScene(showApprox) {
+      const svd = svd2x2(state.A);
+      drawUnitCircle();
+      drawTransformedCircle(state.A, getCss("--cyan"), "A(unit circle)", 3, false);
+      drawVector(svd.v1, getCss("--blue"), "v1", 2.7);
+      drawVector(svd.v2, getCss("--red"), "v2", 2.7);
+      drawVector(scaleVector(svd.s1, svd.u1), getCss("--blue"), "σ1u1", 4);
+      drawVector(scaleVector(svd.s2, svd.u2), getCss("--red"), "σ2u2", 4);
+
+      if (showApprox) {
+        const Ak = svdApprox(svd, state.rank);
+        drawTransformedCircle(Ak, getCss("--green"), `A${state.rank}`, 3.2, true);
+        drawLabel(`保留 k=${state.rank}：σ1${state.rank === 2 ? " 和 σ2" : ""}`, 22, 34, getCss("--green"));
+      }
+    }
+
+    function drawUnitCircle() {
+      ctx.save();
+      ctx.strokeStyle = "rgba(92, 102, 122, 0.55)";
+      ctx.fillStyle = getCss("--blue-soft");
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i <= 180; i += 1) {
+        const t = i / 180 * Math.PI * 2;
+        const p = toScreen({ x: Math.cos(t), y: Math.sin(t) });
+        if (i === 0) {
+          ctx.moveTo(p.x, p.y);
+        } else {
+          ctx.lineTo(p.x, p.y);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      drawLabel("单位圆", toScreen({ x: 1, y: 0 }).x + 8, toScreen({ x: 1, y: 0 }).y - 8, getCss("--axis"));
+      ctx.restore();
+    }
+
+    function drawTransformedCircle(M, color, label, width, dashed) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color === getCss("--green") ? getCss("--green-soft") : "rgba(8, 145, 178, 0.1)";
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([8, 7]);
+      }
+      ctx.beginPath();
+      for (let i = 0; i <= 220; i += 1) {
+        const t = i / 220 * Math.PI * 2;
+        const p = toScreen(matVec(M, { x: Math.cos(t), y: Math.sin(t) }));
+        if (i === 0) {
+          ctx.moveTo(p.x, p.y);
+        } else {
+          ctx.lineTo(p.x, p.y);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      drawLabel(label, toScreen(matVec(M, { x: 1, y: 0 })).x + 8, toScreen(matVec(M, { x: 1, y: 0 })).y - 8, color);
+      ctx.restore();
+    }
+
+    function drawPcaScene(showProjection) {
+      const pca = pcaInfo(state.points);
+      drawPoints();
+      drawMean(pca.mean);
+      drawLineThrough(pca.mean, pca.pc1, getCss("--blue"), "PC1", 3.4);
+      drawLineThrough(pca.mean, pca.pc2, getCss("--red"), "PC2", 2.6);
+      drawVector(scaleVector(Math.sqrt(Math.max(pca.lambda1, 0)) * 1.4, pca.pc1), getCss("--blue"), "方差大", 3, pca.mean);
+      drawVector(scaleVector(Math.sqrt(Math.max(pca.lambda2, 0)) * 1.4, pca.pc2), getCss("--red"), "方差小", 3, pca.mean);
+
+      if (showProjection) {
+        state.points.forEach((point) => {
+          const centered = sub(point, pca.mean);
+          const projected = add(pca.mean, scaleVector(dot(centered, pca.pc1), pca.pc1));
+          drawDashedSegment(point, projected, getCss("--violet"));
+          drawPoint(projected, getCss("--green"), 5);
+        });
+        drawLabel(`PC1 保留方差 ${fmt(pca.ratio * 100)}%`, 22, 34, getCss("--green"));
+      }
+    }
+
+    function drawPoints() {
+      state.points.forEach((point, index) => {
+        drawPoint(point, getCss("--amber"), 7);
+        const p = toScreen(point);
+        drawLabel(`p${index + 1}`, p.x + 9, p.y - 9, getCss("--amber"));
+      });
+    }
+
+    function drawPoint(point, color, radius) {
+      const screen = toScreen(point);
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(screen.x, screen.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawMean(mean) {
+      const p = toScreen(mean);
+      ctx.save();
+      ctx.fillStyle = getCss("--violet");
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      drawLabel("mean", p.x + 10, p.y - 10, getCss("--violet"));
+      ctx.restore();
+    }
+
+    function drawLineThrough(originPoint, direction, color, label, width) {
+      const unit = normalize(direction);
+      if (norm(unit) < EPS) {
+        return;
+      }
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash([9, 7]);
+      lineScreen(toScreen(add(originPoint, scaleVector(-8, unit))), toScreen(add(originPoint, scaleVector(8, unit))));
+      ctx.setLineDash([]);
+      const labelPoint = toScreen(add(originPoint, scaleVector(2.5, unit)));
+      drawLabel(label, labelPoint.x + 8, labelPoint.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawDashedSegment(from, to, color) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      lineScreen(toScreen(from), toScreen(to));
+      ctx.restore();
+    }
+
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(label, end.x + 8, end.y - 8, color);
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      drawLabel(label, end.x + 8, end.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawLabel(text, x, y, color) {
+      ctx.save();
+      ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+      const metrics = ctx.measureText(text);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(x - 3, y - 14, metrics.width + 6, 18);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBaseGrid();
+      if (state.mode === "svd") {
+        drawSvdScene(false);
+      } else if (state.mode === "rank") {
+        drawSvdScene(true);
+      } else if (state.mode === "pca") {
+        drawPcaScene(false);
+      } else {
+        drawPcaScene(true);
+      }
+      updateUi();
+    }
+
+    function updateUi() {
+      syncControls();
+      renderModeGuide();
+      updateStatus();
+      updateReadout();
+    }
+
+    function syncControls() {
+      sliders.a.value = String(state.A.a);
+      sliders.b.value = String(state.A.b);
+      sliders.c.value = String(state.A.c);
+      sliders.d.value = String(state.A.d);
+      sliders.rank.value = String(state.rank);
+      values.a.textContent = fmt(state.A.a);
+      values.b.textContent = fmt(state.A.b);
+      values.c.textContent = fmt(state.A.c);
+      values.d.textContent = fmt(state.A.d);
+      values.rank.textContent = String(state.rank);
+
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === state.mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus() {
+      const svd = svd2x2(state.A);
+      const pca = pcaInfo(state.points);
+      if (state.mode === "svd") {
+        statusTitle.textContent = "SVD 把单位圆变成椭圆";
+        statusDetail.textContent = `σ1=${fmt(svd.s1)}，σ2=${fmt(svd.s2)}。蓝色/红色方向给出椭圆半轴。`;
+        varianceDetail.textContent = svd.s2 < 0.08 ? "第二奇异值接近 0，矩阵几乎把某个方向压扁。" : "两个奇异值都明显非零，矩阵保留两个输出方向。";
+      } else if (state.mode === "rank") {
+        statusTitle.textContent = `rank-${state.rank} 近似只保留最强方向`;
+        statusDetail.textContent = state.rank === 1 ? "绿色近似只保留 σ1 对应的外积方向。" : "k=2 时完整恢复原矩阵。";
+        varianceDetail.textContent = `保留能量比例约 ${fmt(energyRatio(svd, state.rank) * 100)}%。`;
+      } else {
+        statusTitle.textContent = "PCA 主轴来自数据协方差";
+        statusDetail.textContent = `PC1 方差=${fmt(pca.lambda1)}，PC2 方差=${fmt(pca.lambda2)}。`;
+        varianceDetail.textContent = `PC1 解释方差比例约 ${fmt(pca.ratio * 100)}%。`;
+      }
+    }
+
+    function updateReadout() {
+      const svd = svd2x2(state.A);
+      const pca = pcaInfo(state.points);
+      const lines = [
+        `A = [[${fmt(state.A.a)}, ${fmt(state.A.b)}],`,
+        `     [${fmt(state.A.c)}, ${fmt(state.A.d)}]]`,
+        `σ1 = ${fmt(svd.s1)}`,
+        `σ2 = ${fmt(svd.s2)}`,
+        `v1 = [${fmt(svd.v1.x)}, ${fmt(svd.v1.y)}]`,
+        `v2 = [${fmt(svd.v2.x)}, ${fmt(svd.v2.y)}]`,
+        `u1 = [${fmt(svd.u1.x)}, ${fmt(svd.u1.y)}]`,
+        `u2 = [${fmt(svd.u2.x)}, ${fmt(svd.u2.y)}]`,
+        `rank-${state.rank} energy = ${fmt(energyRatio(svd, state.rank) * 100)}%`,
+        "",
+        `PCA mean = [${fmt(pca.mean.x)}, ${fmt(pca.mean.y)}]`,
+        `PC1 = [${fmt(pca.pc1.x)}, ${fmt(pca.pc1.y)}]`,
+        `PC2 = [${fmt(pca.pc2.x)}, ${fmt(pca.pc2.y)}]`,
+        `variance ratio PC1 = ${fmt(pca.ratio * 100)}%`
+      ];
+      readout.innerHTML = lines.join("<br>");
+    }
+
+    function energyRatio(svd, k) {
+      const total = svd.s1 * svd.s1 + svd.s2 * svd.s2;
+      if (total < EPS) {
+        return 0;
+      }
+      const kept = k === 1 ? svd.s1 * svd.s1 : total;
+      return kept / total;
+    }
+
+    function activateMode(mode) {
+      state.mode = mode;
+      draw();
+    }
+
+    function bindSlider(name, update) {
+      ["input", "change"].forEach((eventName) => {
+        sliders[name].addEventListener(eventName, () => {
+          update(Number(sliders[name].value));
+          draw();
+        });
+      });
+    }
+
+    bindSlider("a", (value) => {
+      state.A.a = value;
+    });
+    bindSlider("b", (value) => {
+      state.A.b = value;
+    });
+    bindSlider("c", (value) => {
+      state.A.c = value;
+    });
+    bindSlider("d", (value) => {
+      state.A.d = value;
+    });
+    bindSlider("rank", (value) => {
+      state.rank = value;
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    matrixButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.A = { ...matrixPresets[button.dataset.matrix] };
+        state.mode = "svd";
+        draw();
+      });
+    });
+
+    pointButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.points = pointPresets[button.dataset.points].map((point) => ({ ...point }));
+        state.mode = "pca";
+        draw();
+      });
+    });
+
+    function nearestDragTarget(point) {
+      if (state.mode !== "pca" && state.mode !== "project") {
+        return null;
+      }
+      const candidates = state.points.map((dataPoint, index) => ({
+        name: `point-${index}`,
+        distance: distance(point, toScreen(dataPoint))
+      }));
+      candidates.sort((left, right) => left.distance - right.distance);
+      return candidates[0].distance < 24 ? candidates[0].name : null;
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const target = nearestDragTarget(pointerPoint(event));
+      if (target) {
+        state.dragTarget = target;
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.dragTarget) {
+        return;
+      }
+      const world = toWorld(pointerPoint(event));
+      const index = Number(state.dragTarget.split("-")[1]);
+      state.points[index] = {
+        x: clamp(world.x, -5.5, 5.5),
+        y: clamp(world.y, -4.8, 4.8)
+      };
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      state.dragTarget = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      state.dragTarget = null;
+    });
+
+    function dot(u, v) {
+      return u.x * v.x + u.y * v.y;
+    }
+
+    function add(u, v) {
+      return { x: u.x + v.x, y: u.y + v.y };
+    }
+
+    function sub(u, v) {
+      return { x: u.x - v.x, y: u.y - v.y };
+    }
+
+    function scaleVector(k, v) {
+      return { x: k * v.x, y: k * v.y };
+    }
+
+    function norm(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function normalize(v) {
+      const length = norm(v);
+      return length < EPS ? { x: 0, y: 0 } : { x: v.x / length, y: v.y / length };
+    }
+
+    function perp(v) {
+      return { x: -v.y, y: v.x };
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getCss(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmt(value) {
+      const fixed = Number(value).toFixed(2);
+      return fixed === "-0.00" ? "0.00" : fixed;
+    }
+
+    function distance(p, q) {
+      return Math.hypot(p.x - q.x, p.y - q.y);
+    }
+
+    function lineScreen(start, end) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>

@@ -165,11 +165,18 @@ python3 -m venv .venv
 
 可选主题：
 
-- 图像压缩
-- PageRank
+- 图像压缩：`topics/09-applications/01-image-compression/`
+- PageRank：`topics/09-applications/02-pagerank/`
 - 推荐系统中的矩阵分解
 - 线性回归
 - 神经网络中的矩阵运算基础
+
+已实现专题：
+
+- `01-image-compression/index.html`：把灰度图看作矩阵，用截断 SVD 展示低秩压缩、残差和存储量取舍。
+- `01-image-compression/demo.py`：用 `numpy.linalg.svd` 生成不同 rank 的重建图和误差统计。
+- `02-pagerank/index.html`：把网页链接图转成随机转移矩阵，展示阻尼因子、幂迭代和稳定排名向量。
+- `02-pagerank/demo.py`：用 `numpy` 计算不同阻尼因子的 PageRank，并画出排序和收敛曲线。
 
 ## 每个知识点的推荐文件
 

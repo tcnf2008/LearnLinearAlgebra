@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>09. 应用专题：图像压缩</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --border: #d8deea;
+      --grid: #d8deea;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --cyan: #0891b2;
+      --violet: #7c3aed;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --green-soft: rgba(5, 150, 105, 0.12);
+      --amber-soft: rgba(217, 119, 6, 0.14);
+      --red-soft: rgba(225, 29, 72, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      color: #243047;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    pre {
+      margin: 10px 0 12px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: #f1f5f9;
+      color: #243047;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .lead {
+      max-width: 940px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .image-panel {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .image-panel h3 {
+      margin: 0;
+      padding: 10px 12px 0;
+      font-size: 16px;
+    }
+
+    .image-panel p {
+      min-height: 48px;
+      margin: 0;
+      padding: 0 12px 12px;
+      font-size: 13px;
+    }
+
+    .image-panel canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .spectrum-wrap {
+      margin-top: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .spectrum-wrap h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .spectrum-wrap canvas {
+      display: block;
+      width: 100%;
+      height: 220px;
+      margin-top: 8px;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .metric {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 2px;
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .control-section {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .control-section h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    input[type="file"] {
+      width: 100%;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .value {
+      color: var(--ink);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    button.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    .status-card {
+      padding: 12px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .status-card p {
+      margin: 0 0 8px;
+      color: #293449;
+    }
+
+    .status-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-title {
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin: 8px 0 0;
+      font-size: 13px;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      background: #f0fdf4;
+    }
+
+    .callout p {
+      margin: 0;
+      color: #244033;
+      font-weight: 700;
+    }
+
+    .exercise-block {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    li {
+      margin: 7px 0;
+    }
+
+    details {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    summary {
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .source-list {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 1000px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .learning-path {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .image-grid,
+      .concept-grid,
+      .learning-path,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .image-panel p {
+        min-height: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>09. 应用专题：图像压缩</h1>
+      <p class="lead">图像压缩把一张图片看成像素矩阵：如果大部分视觉信息集中在少数“主要模式”里，就可以用低秩矩阵近似原矩阵，用更少数字保留主要结构。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本专题要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>一张有很多像素的图片，为什么可以用少数几个秩 1 图案近似？压缩到底牺牲了什么？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>图像矩阵：</strong>灰度图可写成 <code>m x n</code> 矩阵，每个数表示一个像素亮度。</li>
+        <li><strong>SVD 分解：</strong><code>A=UΣV^T</code> 把图像拆成若干个按重要性排序的秩 1 图案。</li>
+        <li><strong>低秩近似：</strong>只保留前 <code>k</code> 个奇异值，得到 <code>A_k</code>。</li>
+        <li><strong>压缩收益：</strong>原图需要 <code>mn</code> 个数，低秩形式约需 <code>k(m+n+1)</code> 个数。</li>
+        <li><strong>误差来源：</strong>被丢掉的奇异值对应残差，常表现为边缘、纹理或噪声。</li>
+        <li><strong>工程边界：</strong>SVD 说明低秩思想；真实 JPEG/WebP 还会做分块、量化和熵编码。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：用 SVD 压缩一张小图</h2>
+      <p>调节保留的奇异值个数 <code>k</code>，观察压缩图如何从模糊轮廓逐步恢复细节。奇异值谱中蓝色柱表示被保留的部分，灰色柱表示被舍弃的部分。</p>
+
+      <div class="workspace">
+        <div>
+          <div class="image-grid">
+            <article class="image-panel">
+              <canvas id="originalCanvas" width="280" height="280" aria-label="原始像素矩阵"></canvas>
+              <h3>原图矩阵 A</h3>
+              <p>每个小格是一个灰度像素，亮度越高，矩阵元素越大。</p>
+            </article>
+
+            <article class="image-panel">
+              <canvas id="compressedCanvas" width="280" height="280" aria-label="低秩近似图像"></canvas>
+              <h3>低秩近似 A_k</h3>
+              <p>只用前 k 个奇异值重建；k 越大，细节越多，压缩越弱。</p>
+            </article>
+
+            <article class="image-panel">
+              <canvas id="residualCanvas" width="280" height="280" aria-label="残差热力图"></canvas>
+              <h3>残差 A - A_k</h3>
+              <p>橙色表示原图更亮，蓝色表示近似图更亮，越深代表误差越大。</p>
+            </article>
+          </div>
+
+          <div class="metric-grid" aria-live="polite">
+            <div class="metric">
+              <span>保留能量</span>
+              <strong id="energyMetric">-</strong>
+            </div>
+            <div class="metric">
+              <span>RMSE 误差</span>
+              <strong id="rmseMetric">-</strong>
+            </div>
+            <div class="metric">
+              <span>低秩存储量</span>
+              <strong id="storageMetric">-</strong>
+            </div>
+            <div class="metric">
+              <span>压缩倍数</span>
+              <strong id="ratioMetric">-</strong>
+            </div>
+          </div>
+
+          <div class="spectrum-wrap">
+            <h3>奇异值谱</h3>
+            <p>如果前几个柱子明显高于后面，说明图像有强低秩结构；如果柱子下降很慢，说明细节、纹理或噪声很多，需要更大的 k。</p>
+            <canvas id="spectrumCanvas" width="900" height="260" aria-label="奇异值谱和累计能量曲线"></canvas>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle">等待计算</p>
+              <p id="statusDetail"></p>
+              <p id="storageDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>压缩参数</h3>
+            <label>
+              <span>保留奇异值个数 k = <strong class="value" id="rankValue">8</strong></span>
+              <input id="rankSlider" type="range" min="1" max="40" step="1" value="8">
+            </label>
+            <label>
+              <span>噪声强度 = <strong class="value" id="noiseValue">0.04</strong></span>
+              <input id="noiseSlider" type="range" min="0" max="0.28" step="0.01" value="0.04">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>内置图像</h3>
+            <div class="preset-grid">
+              <button type="button" data-pattern="smooth" class="active">平滑场景</button>
+              <button type="button" data-pattern="blocks">几何边缘</button>
+              <button type="button" data-pattern="stripes">斜向纹理</button>
+              <button type="button" data-pattern="letters">文字边缘</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>使用自己的图片</h3>
+            <input id="fileInput" type="file" accept="image/*">
+            <p class="mini-note">页面会把图片缩放成 40x40 灰度矩阵，仅用于观察低秩压缩思想。</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 图片为什么是矩阵</h3>
+          <p>灰度图的第 <code>i</code> 行第 <code>j</code> 列像素可以记作 <code>A[i,j]</code>。黑色接近 0，白色接近 1。彩色图也可以拆成 R、G、B 三个矩阵分别处理。</p>
+          <p>所以图像压缩首先是一个矩阵近似问题：找一个更容易存储的矩阵 <code>B</code>，让它看起来尽量接近 <code>A</code>。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. SVD 如何拆图像</h3>
+          <p>对图像矩阵做 SVD：</p>
+          <pre>A = σ1 u1 v1^T + σ2 u2 v2^T + ... + σr ur vr^T</pre>
+          <p>每一项 <code>σi ui vi^T</code> 都是一个 rank 1 图案。奇异值 <code>σi</code> 越大，该图案对整张图的能量贡献越大。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 低秩近似为什么能压缩</h3>
+          <p>原始 <code>m x n</code> 灰度图要存 <code>mn</code> 个数。只保留前 <code>k</code> 项时，需要存 <code>k</code> 个奇异值、<code>k</code> 个长度为 <code>m</code> 的左向量、<code>k</code> 个长度为 <code>n</code> 的右向量：</p>
+          <pre>存储量约为 k(m+n+1)</pre>
+          <p>当 <code>k(m+n+1) &lt; mn</code> 时，低秩表示才有存储意义。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 为什么保留最大的奇异值</h3>
+          <p>最大的奇异值对应矩阵中最强的正交模式。截断 SVD 的关键结论是：在所有 rank <code>k</code> 矩阵里，<code>A_k</code> 是 Frobenius 误差最小的近似。</p>
+          <p>直觉上，它优先保留大面积亮暗变化和主要边缘，把细碎纹理、噪声或弱结构放进残差。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. 残差告诉你丢掉了什么</h3>
+          <p><code>A - A_k</code> 是被压缩扔掉的信息。如果残差集中在边缘，说明当前 k 还不足以描述锐利轮廓；如果残差像随机颗粒，说明噪声占了较多奇异值。</p>
+          <p>这也是压缩的核心取舍：更小的文件、更模糊的细节，或者更大的文件、更接近原图。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 这和真实图片格式的关系</h3>
+          <p>SVD 低秩压缩适合解释“用少数结构近似复杂数据”的线性代数思想，但不是 JPEG/WebP 的完整实现。真实图片格式通常按局部块变换、量化和熵编码来优化速度、视觉质量和文件大小。</p>
+          <p>本页的重点不是发明最优图片格式，而是看清矩阵分解如何把数据压缩成主要模式。</p>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>一句话总结：SVD 图像压缩把“整张图”改写成“少数重要秩 1 图案的和”，k 控制保留多少结构，残差显示牺牲多少细节。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么一张灰度图可以看成矩阵？彩色图为什么可以看成多个矩阵？</li>
+          <li>奇异值谱下降很快和下降很慢，分别说明图片有什么特点？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>一张 <code>100 x 100</code> 灰度图原始存储量是 10000 个数。若保留 <code>k=10</code> 个奇异值，低秩形式约需多少个数？是否压缩？</li>
+          <li>设某图像的奇异值平方为 <code>[64, 16, 9, 7, 4]</code>。保留前 2 项时，能量保留比例是多少？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>选择“平滑场景”，把 <code>k</code> 从 1 缓慢调到 12，观察轮廓、明暗渐变和残差的变化。</li>
+          <li>选择“文字边缘”或上传一张边缘清晰的图片，比较同样 <code>k=8</code> 时残差为什么更集中在边界。</li>
+          <li>增加噪声强度，观察奇异值谱是否下降得更慢，并解释这对压缩质量的影响。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>程序题</h3>
+        <ol>
+          <li>运行 <code>.venv/bin/python topics/09-applications/01-image-compression/demo.py</code>，查看不同 k 的 RMSE、能量保留比例和输出图。</li>
+          <li>把脚本中的 <code>ranks</code> 改成 <code>[1, 4, 8, 16, 32]</code>，比较从模糊到清晰的过程。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>为什么 SVD 对大面积平滑变化很有效，但对棋盘格、文字边缘、随机噪声不一定高效？</li>
+          <li>如果某个小但重要的细节只出现在很小区域，它可能对应大奇异值还是小奇异值？这对压缩有什么风险？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>灰度图每个像素只有一个亮度值，自然形成二维数组；彩色图每个像素有多个通道，可拆成 R、G、B 等多个矩阵。</li>
+          <li>下降快说明主要结构集中在少数模式中，适合低秩压缩；下降慢说明细节、纹理或噪声多，需要更大的 k。</li>
+          <li><code>k(m+n+1)=10(100+100+1)=2010</code>，小于 10000，所以低秩形式有压缩效果。</li>
+          <li>前 2 项能量是 <code>64+16=80</code>，总能量是 <code>100</code>，保留比例是 80%。</li>
+          <li>平滑变化可由少数低频模式近似；边缘、棋盘格和噪声包含很多局部或高频信息，通常需要更多奇异值。</li>
+          <li>小区域细节可能只贡献较小整体能量，对应较小奇异值；压缩时容易被截断，但视觉或语义上仍可能很重要。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“像素矩阵 -> SVD 秩 1 图案 -> 截断重建 -> 残差和存储量”的顺序，把应用问题先还原成矩阵近似，再解释压缩取舍。</p>
+      <ul class="source-list">
+        <li>概念校准：SVD、奇异值和低秩近似，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/lecture-29-singular-value-decomposition/">MIT OCW 18.06SC: Singular Value Decomposition</a>。</li>
+        <li>应用路径：用低秩 SVD 展示图像压缩的实验流程，参考 <a href="https://www.mathworks.com/help/matlab/math/image-compression-with-low-rank-svd.html">MathWorks: Image Compression with Low-Rank SVD</a>。</li>
+        <li>程序实现：Python demo 使用 <code>numpy.linalg.svd</code> 的标准接口，参考 <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.svd.html">NumPy: numpy.linalg.svd</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const SIZE = 40;
+    const state = {
+      pattern: "smooth",
+      noise: 0.04,
+      k: 8,
+      matrix: [],
+      components: [],
+      totalEnergy: 0,
+      uploadedMatrix: null,
+      sourceName: "平滑场景"
+    };
+
+    const canvases = {
+      original: document.getElementById("originalCanvas"),
+      compressed: document.getElementById("compressedCanvas"),
+      residual: document.getElementById("residualCanvas"),
+      spectrum: document.getElementById("spectrumCanvas")
+    };
+
+    const rankSlider = document.getElementById("rankSlider");
+    const noiseSlider = document.getElementById("noiseSlider");
+    const rankValue = document.getElementById("rankValue");
+    const noiseValue = document.getElementById("noiseValue");
+    const fileInput = document.getElementById("fileInput");
+
+    const metrics = {
+      energy: document.getElementById("energyMetric"),
+      rmse: document.getElementById("rmseMetric"),
+      storage: document.getElementById("storageMetric"),
+      ratio: document.getElementById("ratioMetric"),
+      title: document.getElementById("statusTitle"),
+      detail: document.getElementById("statusDetail"),
+      storageDetail: document.getElementById("storageDetail")
+    };
+
+    const patternNames = {
+      smooth: "平滑场景",
+      blocks: "几何边缘",
+      stripes: "斜向纹理",
+      letters: "文字边缘",
+      upload: "上传图片"
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function fmt(value, digits = 2) {
+      return Number.isFinite(value) ? value.toFixed(digits) : "-";
+    }
+
+    function gaussian(x, y, cx, cy, sx, sy) {
+      const dx = (x - cx) / sx;
+      const dy = (y - cy) / sy;
+      return Math.exp(-0.5 * (dx * dx + dy * dy));
+    }
+
+    function seededNoise(i, j) {
+      const raw = Math.sin((i + 1) * 127.1 + (j + 1) * 311.7) * 43758.5453;
+      return raw - Math.floor(raw) - 0.5;
+    }
+
+    function addNoise(matrix, amount) {
+      return matrix.map((row, i) => row.map((value, j) => clamp(value + amount * seededNoise(i, j), 0, 1)));
+    }
+
+    function generatePatternMatrix(pattern) {
+      if (pattern === "letters") {
+        return generateLetterMatrix();
+      }
+
+      const matrix = [];
+      for (let i = 0; i < SIZE; i += 1) {
+        const y = i / (SIZE - 1);
+        const row = [];
+        for (let j = 0; j < SIZE; j += 1) {
+          const x = j / (SIZE - 1);
+          let value;
+
+          if (pattern === "blocks") {
+            const box = x > 0.18 && x < 0.78 && y > 0.18 && y < 0.72 ? 0.42 : 0;
+            const disk = (x - 0.62) ** 2 + (y - 0.42) ** 2 < 0.12 ** 2 ? 0.34 : 0;
+            const bar = Math.abs(y - 0.77) < 0.035 && x > 0.12 && x < 0.86 ? 0.28 : 0;
+            value = 0.16 + box + disk + bar + 0.14 * x;
+          } else if (pattern === "stripes") {
+            value = 0.5
+              + 0.22 * Math.sin(10 * Math.PI * (x + y))
+              + 0.16 * Math.sin(18 * Math.PI * x)
+              + 0.10 * Math.cos(8 * Math.PI * y);
+          } else {
+            const sky = 0.22 + 0.36 * (1 - y) + 0.18 * x;
+            const hill = y > 0.58 + 0.10 * Math.sin(2.4 * Math.PI * x) ? 0.18 : 0;
+            const sun = 0.28 * gaussian(x, y, 0.74, 0.25, 0.11, 0.11);
+            const shadow = -0.18 * gaussian(x, y, 0.38, 0.68, 0.24, 0.09);
+            value = sky + hill + sun + shadow;
+          }
+
+          row.push(clamp(value, 0, 1));
+        }
+        matrix.push(row);
+      }
+      return matrix;
+    }
+
+    function generateLetterMatrix() {
+      const canvas = document.createElement("canvas");
+      canvas.width = SIZE;
+      canvas.height = SIZE;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      context.fillStyle = "#111827";
+      context.fillRect(0, 0, SIZE, SIZE);
+      context.fillStyle = "#f8fafc";
+      context.font = "bold 24px Arial, sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText("LA", SIZE / 2, SIZE / 2 + 1);
+      context.strokeStyle = "#93c5fd";
+      context.lineWidth = 2;
+      context.strokeRect(6, 7, 28, 25);
+
+      const data = context.getImageData(0, 0, SIZE, SIZE).data;
+      const matrix = [];
+      for (let i = 0; i < SIZE; i += 1) {
+        const row = [];
+        for (let j = 0; j < SIZE; j += 1) {
+          const offset = (i * SIZE + j) * 4;
+          row.push((0.2126 * data[offset] + 0.7152 * data[offset + 1] + 0.0722 * data[offset + 2]) / 255);
+        }
+        matrix.push(row);
+      }
+      return matrix;
+    }
+
+    function sampleImageToMatrix(image) {
+      const canvas = document.createElement("canvas");
+      canvas.width = SIZE;
+      canvas.height = SIZE;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, SIZE, SIZE);
+
+      const scale = Math.max(SIZE / image.width, SIZE / image.height);
+      const width = image.width * scale;
+      const height = image.height * scale;
+      const x = (SIZE - width) / 2;
+      const y = (SIZE - height) / 2;
+      context.drawImage(image, x, y, width, height);
+
+      const data = context.getImageData(0, 0, SIZE, SIZE).data;
+      const matrix = [];
+      for (let i = 0; i < SIZE; i += 1) {
+        const row = [];
+        for (let j = 0; j < SIZE; j += 1) {
+          const offset = (i * SIZE + j) * 4;
+          row.push((0.2126 * data[offset] + 0.7152 * data[offset + 1] + 0.0722 * data[offset + 2]) / 255);
+        }
+        matrix.push(row);
+      }
+      return matrix;
+    }
+
+    function dot(a, b) {
+      let sum = 0;
+      for (let i = 0; i < a.length; i += 1) {
+        sum += a[i] * b[i];
+      }
+      return sum;
+    }
+
+    function norm(vector) {
+      return Math.sqrt(dot(vector, vector));
+    }
+
+    function normalize(vector) {
+      const length = norm(vector);
+      if (length < 1e-12) {
+        return vector.map(() => 0);
+      }
+      return vector.map((value) => value / length);
+    }
+
+    function multiplyMatrixVector(matrix, vector) {
+      return matrix.map((row) => dot(row, vector));
+    }
+
+    function multiplyTransposeVector(matrix, vector) {
+      const result = Array(matrix[0].length).fill(0);
+      for (let i = 0; i < matrix.length; i += 1) {
+        for (let j = 0; j < matrix[0].length; j += 1) {
+          result[j] += matrix[i][j] * vector[i];
+        }
+      }
+      return result;
+    }
+
+    function vectorDistance(a, b) {
+      let sum = 0;
+      for (let i = 0; i < a.length; i += 1) {
+        const diff = a[i] - b[i];
+        sum += diff * diff;
+      }
+      return Math.sqrt(sum);
+    }
+
+    function computeSVD(matrix) {
+      const m = matrix.length;
+      const n = matrix[0].length;
+      const limit = Math.min(m, n);
+      const residual = matrix.map((row) => row.slice());
+      const components = [];
+      let totalEnergy = 0;
+
+      for (let i = 0; i < m; i += 1) {
+        for (let j = 0; j < n; j += 1) {
+          totalEnergy += matrix[i][j] * matrix[i][j];
+        }
+      }
+
+      for (let component = 0; component < limit; component += 1) {
+        let v = Array.from({ length: n }, (_, j) => (
+          Math.sin((j + 1) * (component + 1) * 1.31) + 0.33 * Math.cos((j + 3) * (component + 2) * 0.73)
+        ));
+        v = normalize(v);
+
+        let u = Array(m).fill(0);
+        for (let iter = 0; iter < 80; iter += 1) {
+          u = normalize(multiplyMatrixVector(residual, v));
+          const nextV = normalize(multiplyTransposeVector(residual, u));
+          const diff = vectorDistance(v, nextV);
+          v = nextV;
+          if (diff < 1e-7 && iter > 8) {
+            break;
+          }
+        }
+
+        const Av = multiplyMatrixVector(residual, v);
+        const sigma = norm(Av);
+        if (sigma < 1e-8) {
+          break;
+        }
+
+        u = Av.map((value) => value / sigma);
+        components.push({ sigma, u, v });
+
+        for (let i = 0; i < m; i += 1) {
+          for (let j = 0; j < n; j += 1) {
+            residual[i][j] -= sigma * u[i] * v[j];
+          }
+        }
+      }
+
+      return { components, totalEnergy };
+    }
+
+    function reconstruct(components, k) {
+      const matrix = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+      const count = Math.min(k, components.length);
+      for (let c = 0; c < count; c += 1) {
+        const { sigma, u, v } = components[c];
+        for (let i = 0; i < SIZE; i += 1) {
+          for (let j = 0; j < SIZE; j += 1) {
+            matrix[i][j] += sigma * u[i] * v[j];
+          }
+        }
+      }
+      return matrix;
+    }
+
+    function computeRmse(original, approx) {
+      let sum = 0;
+      for (let i = 0; i < SIZE; i += 1) {
+        for (let j = 0; j < SIZE; j += 1) {
+          const diff = original[i][j] - approx[i][j];
+          sum += diff * diff;
+        }
+      }
+      return Math.sqrt(sum / (SIZE * SIZE));
+    }
+
+    function energyRatio(components, totalEnergy, k) {
+      if (totalEnergy <= 0) {
+        return 0;
+      }
+      let kept = 0;
+      for (let i = 0; i < Math.min(k, components.length); i += 1) {
+        kept += components[i].sigma * components[i].sigma;
+      }
+      return clamp(kept / totalEnergy, 0, 1);
+    }
+
+    function storageCount(k) {
+      return k * (SIZE + SIZE + 1);
+    }
+
+    function drawPixelMatrix(canvas, matrix) {
+      const context = canvas.getContext("2d");
+      const scaleX = canvas.width / SIZE;
+      const scaleY = canvas.height / SIZE;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < SIZE; i += 1) {
+        for (let j = 0; j < SIZE; j += 1) {
+          const value = Math.round(clamp(matrix[i][j], 0, 1) * 255);
+          context.fillStyle = `rgb(${value}, ${value}, ${value})`;
+          context.fillRect(Math.floor(j * scaleX), Math.floor(i * scaleY), Math.ceil(scaleX), Math.ceil(scaleY));
+        }
+      }
+    }
+
+    function drawResidual(canvas, original, approx) {
+      const context = canvas.getContext("2d");
+      const scaleX = canvas.width / SIZE;
+      const scaleY = canvas.height / SIZE;
+      let maxAbs = 0;
+
+      for (let i = 0; i < SIZE; i += 1) {
+        for (let j = 0; j < SIZE; j += 1) {
+          maxAbs = Math.max(maxAbs, Math.abs(original[i][j] - approx[i][j]));
+        }
+      }
+      maxAbs = Math.max(maxAbs, 0.03);
+
+      for (let i = 0; i < SIZE; i += 1) {
+        for (let j = 0; j < SIZE; j += 1) {
+          const diff = original[i][j] - approx[i][j];
+          const t = clamp(Math.abs(diff) / maxAbs, 0, 1);
+          let r;
+          let g;
+          let b;
+          if (diff >= 0) {
+            r = Math.round(255);
+            g = Math.round(244 - 112 * t);
+            b = Math.round(214 - 168 * t);
+          } else {
+            r = Math.round(219 - 128 * t);
+            g = Math.round(234 - 92 * t);
+            b = Math.round(254);
+          }
+          context.fillStyle = `rgb(${r}, ${g}, ${b})`;
+          context.fillRect(Math.floor(j * scaleX), Math.floor(i * scaleY), Math.ceil(scaleX), Math.ceil(scaleY));
+        }
+      }
+    }
+
+    function drawSpectrum() {
+      const canvas = canvases.spectrum;
+      const context = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const padding = { left: 42, right: 18, top: 18, bottom: 34 };
+      const plotWidth = width - padding.left - padding.right;
+      const plotHeight = height - padding.top - padding.bottom;
+      const components = state.components;
+      const maxSigma = components.length ? components[0].sigma : 1;
+
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+
+      context.strokeStyle = "#d8deea";
+      context.lineWidth = 1;
+      for (let tick = 0; tick <= 4; tick += 1) {
+        const y = padding.top + (plotHeight * tick) / 4;
+        context.beginPath();
+        context.moveTo(padding.left, y);
+        context.lineTo(width - padding.right, y);
+        context.stroke();
+      }
+
+      const barGap = 2;
+      const barWidth = Math.max(3, plotWidth / Math.max(components.length, 1) - barGap);
+      for (let i = 0; i < components.length; i += 1) {
+        const barHeight = (components[i].sigma / maxSigma) * plotHeight;
+        const x = padding.left + i * (plotWidth / components.length);
+        const y = padding.top + plotHeight - barHeight;
+        context.fillStyle = i < state.k ? "#2563eb" : "#cbd5e1";
+        context.fillRect(x, y, barWidth, barHeight);
+      }
+
+      context.strokeStyle = "#059669";
+      context.lineWidth = 3;
+      context.beginPath();
+      let kept = 0;
+      for (let i = 0; i < components.length; i += 1) {
+        kept += components[i].sigma * components[i].sigma;
+        const ratio = state.totalEnergy > 0 ? kept / state.totalEnergy : 0;
+        const x = padding.left + i * (plotWidth / Math.max(components.length - 1, 1));
+        const y = padding.top + plotHeight - clamp(ratio, 0, 1) * plotHeight;
+        if (i === 0) {
+          context.moveTo(x, y);
+        } else {
+          context.lineTo(x, y);
+        }
+      }
+      context.stroke();
+
+      context.fillStyle = "#172033";
+      context.font = "14px -apple-system, BlinkMacSystemFont, sans-serif";
+      context.fillText("σi", 12, padding.top + 14);
+      context.fillText("i", width - padding.right - 8, height - 10);
+
+      context.fillStyle = "#2563eb";
+      context.fillRect(padding.left, height - 24, 12, 8);
+      context.fillStyle = "#5c667a";
+      context.fillText("保留", padding.left + 18, height - 16);
+      context.fillStyle = "#059669";
+      context.fillRect(padding.left + 82, height - 24, 22, 4);
+      context.fillStyle = "#5c667a";
+      context.fillText("累计能量", padding.left + 112, height - 16);
+    }
+
+    function updateMetrics(approx) {
+      const energy = energyRatio(state.components, state.totalEnergy, state.k);
+      const rmse = computeRmse(state.matrix, approx);
+      const originalStorage = SIZE * SIZE;
+      const compressedStorage = storageCount(state.k);
+      const ratio = originalStorage / compressedStorage;
+      const threshold = Math.floor(originalStorage / (SIZE + SIZE + 1));
+
+      metrics.energy.textContent = `${fmt(energy * 100, 1)}%`;
+      metrics.rmse.textContent = fmt(rmse, 3);
+      metrics.storage.textContent = `${compressedStorage}/${originalStorage}`;
+      metrics.ratio.textContent = `${fmt(ratio, 2)}x`;
+
+      metrics.title.textContent = `${state.sourceName}：保留前 ${state.k} 个模式`;
+      metrics.detail.textContent = `当前低秩图保留约 ${fmt(energy * 100, 1)}% 的平方能量，像素均方根误差为 ${fmt(rmse, 3)}。`;
+      metrics.storageDetail.textContent = state.k <= threshold
+        ? `对 ${SIZE}x${SIZE} 小图，k <= ${threshold} 时低秩形式才少于原始 ${originalStorage} 个数。当前仍有压缩收益。`
+        : `对 ${SIZE}x${SIZE} 小图，k 超过 ${threshold} 后低秩参数已经不少于原始像素，更多是在重建质量而非压缩。`;
+    }
+
+    function render() {
+      state.k = Number(rankSlider.value);
+      rankValue.textContent = state.k;
+      noiseValue.textContent = fmt(state.noise, 2);
+
+      const approx = reconstruct(state.components, state.k);
+      drawPixelMatrix(canvases.original, state.matrix);
+      drawPixelMatrix(canvases.compressed, approx);
+      drawResidual(canvases.residual, state.matrix, approx);
+      drawSpectrum();
+      updateMetrics(approx);
+    }
+
+    function recompute() {
+      const base = state.uploadedMatrix
+        ? state.uploadedMatrix.map((row) => row.slice())
+        : generatePatternMatrix(state.pattern);
+      state.matrix = addNoise(base, state.noise);
+      const result = computeSVD(state.matrix);
+      state.components = result.components;
+      state.totalEnergy = result.totalEnergy;
+      render();
+    }
+
+    rankSlider.addEventListener("input", render);
+
+    noiseSlider.addEventListener("input", () => {
+      state.noise = Number(noiseSlider.value);
+      recompute();
+    });
+
+    document.querySelectorAll("[data-pattern]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.pattern = button.dataset.pattern;
+        state.uploadedMatrix = null;
+        state.sourceName = patternNames[state.pattern];
+        fileInput.value = "";
+        document.querySelectorAll("[data-pattern]").forEach((item) => item.classList.toggle("active", item === button));
+        recompute();
+      });
+    });
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        const image = new Image();
+        image.addEventListener("load", () => {
+          state.uploadedMatrix = sampleImageToMatrix(image);
+          state.sourceName = patternNames.upload;
+          document.querySelectorAll("[data-pattern]").forEach((item) => item.classList.remove("active"));
+          recompute();
+        });
+        image.src = reader.result;
+      });
+      reader.readAsDataURL(file);
+    });
+
+    recompute();
+  </script>
+</body>
+</html>

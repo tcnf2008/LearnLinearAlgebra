@@ -24,7 +24,7 @@
 - 公式推导。
 - HTML 交互演示。
 - 可选 Python 可视化或数值实验。
-- 练习题与思考题。
+- 练习题与思考题（数量要少）。
 
 ## 目录组织
 
@@ -119,8 +119,8 @@ topics/
 
 第三阶段加入应用专题：
 
-1. 图像压缩。
-2. PageRank。
+1. 图像压缩：`topics/09-applications/01-image-compression/`。
+2. PageRank：`topics/09-applications/02-pagerank/`。
 3. 线性回归。
 4. PCA 降维。
 5. 推荐系统中的矩阵分解。
