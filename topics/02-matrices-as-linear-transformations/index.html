@@ -1,0 +1,1373 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>02. 矩阵作为线性变换</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --grid: #d8deea;
+      --axis: #6f7b91;
+      --border: #d8deea;
+      --code: #243047;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --cyan: #0891b2;
+      --wash-blue: rgba(37, 99, 235, 0.12);
+      --wash-green: rgba(5, 150, 105, 0.11);
+      --wash-amber: rgba(217, 119, 6, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #bfdbfe;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .canvas-wrap,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: calc(100% - 32px);
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 16px;
+    }
+
+    .control-section + .control-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .controls h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
+    }
+
+    select {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    button {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f5fa;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .status-card,
+    .readout,
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-card {
+      font-family: inherit;
+    }
+
+    .status-card p {
+      margin: 0;
+    }
+
+    .status-card p + p {
+      margin-top: 6px;
+    }
+
+    .status-title {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mini-note,
+    .hint {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #eef2f7;
+      border-radius: 5px;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      margin: 12px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    details {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .exercise-block {
+      margin-top: 16px;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-left: 4px solid var(--violet);
+      background: #f5f3ff;
+      border-radius: 8px;
+      color: #35245f;
+    }
+
+    .callout p {
+      color: #4c3b75;
+    }
+
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .concept-grid,
+      .learning-path,
+      .focus-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .canvas-wrap {
+        min-height: 520px;
+      }
+
+      canvas {
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .legend {
+        position: static;
+        border-width: 1px 0 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>02. 矩阵作为线性变换</h1>
+      <p class="lead">本页把矩阵从“一张数字表”重新看成一个函数：输入一个向量，输出另一个向量。你会直接看到网格、基向量、普通向量和复合变换如何被同一组数字控制。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">少量练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>为什么一个 <code>2x2</code> 矩阵可以看成“把整个二维平面移动到新位置”的规则？</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>对象：</strong>矩阵不是先天为了做表格计算；在这里，它记录一个向量函数。</li>
+        <li><strong>约束：</strong>线性变换必须保留加法和数乘，所以原点不动，网格线仍然直且均匀。</li>
+        <li><strong>信息量：</strong>只要知道标准基 <code>e1</code>、<code>e2</code> 变到哪里，所有向量的去向就确定了。</li>
+        <li><strong>计算：</strong><code>A[x,y]</code> 是用 <code>x</code>、<code>y</code> 当系数，对矩阵两列做线性组合。</li>
+        <li><strong>复合：</strong>先做 <code>B</code> 再做 <code>A</code>，总效果仍是一个线性变换，矩阵写成 <code>AB</code>。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：矩阵如何移动整个平面</h2>
+      <p>拖动蓝色 <code>T(e1)</code> 或红色 <code>T(e2)</code> 的端点，可以直接改变矩阵的两列；拖动橙色输入向量或调整右侧滑块，可以观察 <code>Ax</code> 如何变化。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-grid" aria-current="page" data-mode="grid">1 网格</a>
+        <a class="mode-tab" href="#mode-columns" data-mode="columns">2 列向量</a>
+        <a class="mode-tab" href="#mode-vector" data-mode="vector">3 输入输出</a>
+        <a class="mode-tab" href="#mode-composition" data-mode="composition">4 复合</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
+
+      <div class="workspace">
+        <div class="canvas-wrap" aria-label="二维矩阵变换交互画布">
+          <canvas id="scene" width="820" height="620"></canvas>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--grid);"></i>原网格</span>
+            <span><i class="swatch" style="background: var(--cyan);"></i>A 后网格</span>
+            <span><i class="swatch" style="background: var(--blue);"></i>T(e1)</span>
+            <span><i class="swatch" style="background: var(--red);"></i>T(e2)</span>
+            <span><i class="swatch" style="background: var(--amber);"></i>输入 v</span>
+            <span><i class="swatch" style="background: var(--green);"></i>输出</span>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前变换</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle"></p>
+              <p id="statusDetail"></p>
+              <p id="detDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>矩阵 A</h3>
+            <label>
+              <span>a = A11 = <strong class="value" id="aValue">1.00</strong></span>
+              <input id="aSlider" type="range" min="-3" max="3" step="0.05" value="1">
+            </label>
+            <label>
+              <span>b = A12 = <strong class="value" id="bValue">0.00</strong></span>
+              <input id="bSlider" type="range" min="-3" max="3" step="0.05" value="0">
+            </label>
+            <label>
+              <span>c = A21 = <strong class="value" id="cValue">0.00</strong></span>
+              <input id="cSlider" type="range" min="-3" max="3" step="0.05" value="0">
+            </label>
+            <label>
+              <span>d = A22 = <strong class="value" id="dValue">1.00</strong></span>
+              <input id="dSlider" type="range" min="-3" max="3" step="0.05" value="1">
+            </label>
+            <p class="mini-note">列向量是 <code>T(e1)=[a,c]</code> 和 <code>T(e2)=[b,d]</code>，不是两行。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>输入向量 v</h3>
+            <label>
+              <span>x = <strong class="value" id="xValue">2.00</strong></span>
+              <input id="xSlider" type="range" min="-4" max="4" step="0.05" value="2">
+            </label>
+            <label>
+              <span>y = <strong class="value" id="yValue">1.00</strong></span>
+              <input id="ySlider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>A 的预设</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="identity">恒等</button>
+              <button type="button" data-preset="rotate90">旋转 90°</button>
+              <button type="button" data-preset="scale">缩放</button>
+              <button type="button" data-preset="shear">剪切</button>
+              <button type="button" data-preset="reflect">翻转</button>
+              <button type="button" data-preset="project">压成线</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>复合中的 B</h3>
+            <label>
+              <span>先做的变换</span>
+              <select id="bPreset">
+                <option value="rotate90">旋转 90°</option>
+                <option value="shear">x 方向剪切</option>
+                <option value="reflect">关于 y 轴翻转</option>
+                <option value="scale">非均匀缩放</option>
+                <option value="identity">恒等</option>
+              </select>
+            </label>
+            <p class="mini-note">切到“4 复合”时，画布会比较 <code>Bv</code> 与 <code>A(Bv)</code>。</p>
+          </div>
+
+          <div class="control-section">
+            <h3>当前计算</h3>
+            <div class="readout" id="readout"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 矩阵可以先看成函数</h3>
+          <p>一个矩阵 <code>A</code> 作用在向量 <code>v</code> 上，得到新向量 <code>Av</code>。从函数视角看，输入是位置或移动，输出是变换后的位置或移动。</p>
+          <pre class="formula">T(v) = A v</pre>
+          <p>这种看法比“背乘法规则”更接近线性代数的核心：我们关心的是整个空间如何被一个规则移动。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 什么叫线性</h3>
+          <p>线性变换必须同时满足两件事：</p>
+          <pre>T(u + v) = T(u) + T(v)
+T(kv) = kT(v)</pre>
+          <p>几何上，这意味着原点保持不动，直线仍变成直线，平行且均匀间隔的网格仍保持这种结构。平移会移动原点，所以不是本章讨论的线性变换。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 两列决定整个变换</h3>
+          <p>二维里任意向量都能写成 <code>x*e1 + y*e2</code>。如果知道 <code>e1</code>、<code>e2</code> 变到哪里，就知道所有向量变到哪里。</p>
+          <pre>A = [[a, b],
+     [c, d]]
+
+A e1 = [a, c]
+A e2 = [b, d]</pre>
+          <p>所以矩阵的第一列是 <code>e1</code> 的落点，第二列是 <code>e2</code> 的落点。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 矩阵乘向量是列的线性组合</h3>
+          <p>输入 <code>[x,y]</code> 的含义是“沿 <code>e1</code> 走 <code>x</code> 份，沿 <code>e2</code> 走 <code>y</code> 份”。线性变换后，这个走法不变，只是基向量的落点变了。</p>
+          <pre>A [x, y] = x*[a, c] + y*[b, d]
+         = [a*x + b*y, c*x + d*y]</pre>
+          <p>这就是矩阵乘法公式背后的几何意义。</p>
+        </article>
+
+        <article class="concept">
+          <h3>5. 矩阵乘法表示复合</h3>
+          <p>如果先做 <code>B</code>，再做 <code>A</code>，对任意向量 <code>v</code> 都是：</p>
+          <pre>v -> Bv -> A(Bv)</pre>
+          <p>这个总效果仍然是一个线性变换，因此也可以用一个矩阵表示。这个矩阵记作 <code>AB</code>：</p>
+          <pre>(AB)v = A(Bv)</pre>
+          <p>顺序不能随意交换；<code>AB</code> 表示先 <code>B</code> 后 <code>A</code>。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 压扁、翻转与面积</h3>
+          <p><code>det(A)=a*d-b*c</code> 可以先粗略理解为单位正方形面积的缩放因子。</p>
+          <ul>
+            <li><code>det(A) = 0</code>：平面被压成一条线或一个点，信息丢失。</li>
+            <li><code>det(A) &gt; 0</code>：方向感保持，例如逆时针顺序仍是逆时针。</li>
+            <li><code>det(A) &lt; 0</code>：方向感翻转，好像空间被镜像了一次。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>本章最重要的一句话：<code>A[x,y]</code> 不是神秘规则，而是“用输入坐标 <code>x,y</code> 去组合矩阵的两列”。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>少量练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么知道 <code>T(e1)</code> 和 <code>T(e2)</code> 就足够知道二维线性变换的全部行为？</li>
+          <li>为什么“平移整个平面”不是本章说的线性变换？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>设 <code>A=[[2,-1],[1,3]]</code>，计算 <code>A[3,2]</code>，并用“列向量线性组合”解释。</li>
+          <li>设 <code>B=[[0,-1],[1,0]]</code>，它把 <code>e1</code>、<code>e2</code> 分别变到哪里？这是什么几何变换？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>点击“剪切”和“旋转 90°”，观察蓝色、红色列向量如何决定整张网格。</li>
+          <li>切到“4 复合”，分别选择不同的 <code>B</code>，比较 <code>A(Bv)</code> 和 <code>(AB)v</code> 的读数。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>如果 <code>det(A)=0</code>，为什么通常无法从输出 <code>Av</code> 唯一找回输入 <code>v</code>？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>因为任意二维向量都可写成 <code>x*e1 + y*e2</code>，线性变换会保留加法和数乘，所以 <code>T(xe1 + ye2)=xT(e1)+yT(e2)</code>。</li>
+          <li>平移会把原点移走，而线性变换必须满足 <code>T(0)=0</code>；也可以说它不满足 <code>T(u+v)=T(u)+T(v)</code>。</li>
+          <li><code>A[3,2] = 3*[2,1] + 2*[-1,3] = [4,9]</code>。</li>
+          <li><code>B e1=[0,1]</code>，<code>B e2=[-1,0]</code>，这是逆时针旋转 <code>90°</code>。</li>
+          <li>复合时先算 <code>Bv</code>，再算 <code>A(Bv)</code>；产品矩阵 <code>AB</code> 被定义成捕捉同一个总效果，所以 <code>(AB)v</code> 与 <code>A(Bv)</code> 一致。</li>
+          <li><code>det(A)=0</code> 时至少一个方向被压扁，多个输入可能落到同一个输出，信息丢失后就不能唯一反推。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“网格整体变化 -> 列向量 -> 矩阵乘向量 -> 复合”的顺序，目标是避免一开始就把矩阵乘法变成机械规则。</p>
+      <ul class="source-list">
+        <li>概念校准：线性变换由基向量的像决定，参考 <a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/71bffaffa75c005516ee010daf17868b_MIT18_06S10_L30.pdf">MIT OCW 18.06 Lecture 30</a>。</li>
+        <li>直觉线索：用网格和标准基落点理解矩阵，参考 <a href="https://www.3blue1brown.com/lessons/linear-transformations/">3Blue1Brown: Linear transformations and matrices</a>。</li>
+        <li>复合讲法：矩阵乘法表示连续应用两个线性变换，参考 <a href="https://www.3blue1brown.com/lessons/matrix-multiplication/">3Blue1Brown: Matrix multiplication as composition</a>。</li>
+        <li>练习路径：从函数、线性变换、视觉识别再到矩阵计算，参考 <a href="https://www.khanacademy.org/math/linear-algebra/matrix-transformations">Khan Academy Matrix transformations</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const sliders = {
+      a: document.getElementById("aSlider"),
+      b: document.getElementById("bSlider"),
+      c: document.getElementById("cSlider"),
+      d: document.getElementById("dSlider"),
+      x: document.getElementById("xSlider"),
+      y: document.getElementById("ySlider")
+    };
+
+    const values = {
+      a: document.getElementById("aValue"),
+      b: document.getElementById("bValue"),
+      c: document.getElementById("cValue"),
+      d: document.getElementById("dValue"),
+      x: document.getElementById("xValue"),
+      y: document.getElementById("yValue")
+    };
+
+    const readout = document.getElementById("readout");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusDetail = document.getElementById("statusDetail");
+    const detDetail = document.getElementById("detDetail");
+    const bPresetSelect = document.getElementById("bPreset");
+    const modeGuide = document.getElementById("modeGuide");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const presetButtons = document.querySelectorAll("[data-preset]");
+
+    const state = {
+      A: { a: 1, b: 0, c: 0, d: 1 },
+      input: { x: 2, y: 1 },
+      mode: "grid",
+      bPreset: "rotate90",
+      dragTarget: null,
+      scale: 54
+    };
+
+    const presets = {
+      identity: { a: 1, b: 0, c: 0, d: 1 },
+      rotate90: { a: 0, b: -1, c: 1, d: 0 },
+      scale: { a: 1.7, b: 0, c: 0, d: 0.65 },
+      shear: { a: 1, b: 1.15, c: 0, d: 1 },
+      reflect: { a: -1, b: 0, c: 0, d: 1 },
+      project: { a: 1, b: 0.8, c: 0, d: 0 }
+    };
+
+    const bPresets = {
+      identity: { a: 1, b: 0, c: 0, d: 1 },
+      rotate90: { a: 0, b: -1, c: 1, d: 0 },
+      shear: { a: 1, b: 1, c: 0, d: 1 },
+      reflect: { a: -1, b: 0, c: 0, d: 1 },
+      scale: { a: 0.7, b: 0, c: 0, d: 1.5 }
+    };
+
+    const modeGuides = {
+      grid: {
+        title: "第 1 步：看整个空间",
+        body: "灰色网格是原来的平面，青色网格是 A 作用后的平面。线性变换不会把直线弯成曲线，也不会把原点移走。",
+        task: "任务：点击“剪切”“压成线”，观察网格线如何保持直线，但整体形状发生变化。"
+      },
+      columns: {
+        title: "第 2 步：看矩阵的两列",
+        body: "蓝色 T(e1) 是第一列 [a,c]，红色 T(e2) 是第二列 [b,d]。拖动这两个端点就等于直接改矩阵。",
+        task: "任务：把蓝色端点拖到 [2,1] 附近，看看 A11 和 A21 如何同步变化。"
+      },
+      vector: {
+        title: "第 3 步：看一个输入向量",
+        body: "橙色 v 是输入，绿色 Av 是输出。绿色结果等于 x 份第一列加 y 份第二列。",
+        task: "任务：固定 A，拖动橙色 v，解释为什么输出仍是两列的线性组合。"
+      },
+      composition: {
+        title: "第 4 步：看复合",
+        body: "橙色网格表示先做 B，绿色网格表示再做 A。总效果可以用一个矩阵 AB 一次表示。",
+        task: "任务：切换右侧 B 的预设，比较 A(Bv) 与 (AB)v 的数值是否一致。"
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function origin() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function toScreen(vector) {
+      const o = origin();
+      return {
+        x: o.x + vector.x * state.scale,
+        y: o.y - vector.y * state.scale
+      };
+    }
+
+    function toWorld(point) {
+      const o = origin();
+      return {
+        x: (point.x - o.x) / state.scale,
+        y: (o.y - point.y) / state.scale
+      };
+    }
+
+    function pointerPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function matVec(M, v) {
+      return {
+        x: M.a * v.x + M.b * v.y,
+        y: M.c * v.x + M.d * v.y
+      };
+    }
+
+    function matMul(L, R) {
+      return {
+        a: L.a * R.a + L.b * R.c,
+        b: L.a * R.b + L.b * R.d,
+        c: L.c * R.a + L.d * R.c,
+        d: L.c * R.b + L.d * R.d
+      };
+    }
+
+    function add(u, v) {
+      return { x: u.x + v.x, y: u.y + v.y };
+    }
+
+    function scaleVector(k, v) {
+      return { x: k * v.x, y: k * v.y };
+    }
+
+    function det(M) {
+      return M.a * M.d - M.b * M.c;
+    }
+
+    function col1(M) {
+      return { x: M.a, y: M.c };
+    }
+
+    function col2(M) {
+      return { x: M.b, y: M.d };
+    }
+
+    function norm(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getCss(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmt(value) {
+      const fixed = Number(value).toFixed(2);
+      return fixed === "-0.00" ? "0.00" : fixed;
+    }
+
+    function lineScreen(start, end) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+
+    function drawBaseGrid() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const o = origin();
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = getCss("--grid");
+
+      for (let x = o.x % state.scale; x <= width; x += state.scale) {
+        lineScreen({ x, y: 0 }, { x, y: height });
+      }
+      for (let y = o.y % state.scale; y <= height; y += state.scale) {
+        lineScreen({ x: 0, y }, { x: width, y });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.5;
+      lineScreen({ x: 0, y: o.y }, { x: width, y: o.y });
+      lineScreen({ x: o.x, y: 0 }, { x: o.x, y: height });
+
+      ctx.fillStyle = getCss("--axis");
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      for (let i = -6; i <= 6; i += 1) {
+        if (i !== 0) {
+          const xPoint = toScreen({ x: i, y: 0 });
+          const yPoint = toScreen({ x: 0, y: i });
+          ctx.fillText(String(i), xPoint.x - 4, o.y + 16);
+          ctx.fillText(String(i), o.x + 8, yPoint.y + 4);
+        }
+      }
+    }
+
+    function drawTransformedGrid(M, color, alpha = 0.78, dashed = false) {
+      const span = 7;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.15;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      for (let k = -span; k <= span; k += 1) {
+        const verticalStart = toScreen(matVec(M, { x: k, y: -span }));
+        const verticalEnd = toScreen(matVec(M, { x: k, y: span }));
+        const horizontalStart = toScreen(matVec(M, { x: -span, y: k }));
+        const horizontalEnd = toScreen(matVec(M, { x: span, y: k }));
+        lineScreen(verticalStart, verticalEnd);
+        lineScreen(horizontalStart, horizontalEnd);
+      }
+
+      ctx.setLineDash([]);
+      ctx.globalAlpha = Math.min(1, alpha + 0.18);
+      ctx.lineWidth = 2;
+      lineScreen(toScreen(matVec(M, { x: -span, y: 0 })), toScreen(matVec(M, { x: span, y: 0 })));
+      lineScreen(toScreen(matVec(M, { x: 0, y: -span })), toScreen(matVec(M, { x: 0, y: span })));
+      ctx.restore();
+    }
+
+    function drawUnitParallelogram(M, fillStyle) {
+      const points = [
+        matVec(M, { x: 0, y: 0 }),
+        matVec(M, { x: 1, y: 0 }),
+        matVec(M, { x: 1, y: 1 }),
+        matVec(M, { x: 0, y: 1 })
+      ].map(toScreen);
+
+      ctx.save();
+      ctx.fillStyle = fillStyle;
+      ctx.strokeStyle = getCss("--violet");
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(label, end.x + 8, end.y - 8, color);
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      drawLabel(label, end.x + 8, end.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawLabel(text, x, y, color) {
+      ctx.save();
+      ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+      const metrics = ctx.measureText(text);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+      ctx.fillRect(x - 3, y - 14, metrics.width + 6, 18);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function drawColumnHandles(M) {
+      drawVector(col1(M), getCss("--blue"), "T(e1)", 3.5);
+      drawVector(col2(M), getCss("--red"), "T(e2)", 3.5);
+      drawVector({ x: 1, y: 0 }, "rgba(37, 99, 235, 0.35)", "e1", 2, { x: 0, y: 0 }, true);
+      drawVector({ x: 0, y: 1 }, "rgba(225, 29, 72, 0.35)", "e2", 2, { x: 0, y: 0 }, true);
+    }
+
+    function drawInputOutput() {
+      const A = state.A;
+      const v = state.input;
+      const output = matVec(A, v);
+      const xPart = scaleVector(v.x, col1(A));
+      const yPart = scaleVector(v.y, col2(A));
+
+      drawVector(v, getCss("--amber"), "v", 3);
+      drawVector(xPart, getCss("--blue"), "x*T(e1)", 2.3);
+      drawVector(yPart, getCss("--red"), "y*T(e2)", 2.3, xPart, true);
+      drawVector(output, getCss("--green"), "Av", 4);
+    }
+
+    function drawComposition() {
+      const A = state.A;
+      const B = bPresets[state.bPreset];
+      const AB = matMul(A, B);
+      const v = state.input;
+      const bv = matVec(B, v);
+      const abv = matVec(A, bv);
+
+      drawTransformedGrid(B, getCss("--amber"), 0.5, true);
+      drawTransformedGrid(AB, getCss("--green"), 0.72, false);
+      drawUnitParallelogram(B, getCss("--wash-amber"));
+      drawUnitParallelogram(AB, getCss("--wash-green"));
+      drawVector(v, "rgba(217, 119, 6, 0.55)", "v", 2.4, { x: 0, y: 0 }, true);
+      drawVector(bv, getCss("--amber"), "Bv", 3);
+      drawVector(abv, getCss("--green"), "A(Bv)", 4);
+    }
+
+    function draw() {
+      drawBaseGrid();
+
+      if (state.mode === "composition") {
+        drawComposition();
+      } else {
+        drawTransformedGrid(state.A, getCss("--cyan"), 0.72, false);
+        drawUnitParallelogram(state.A, getCss("--wash-blue"));
+        if (state.mode === "columns" || state.mode === "vector") {
+          drawColumnHandles(state.A);
+        }
+        if (state.mode === "vector") {
+          drawInputOutput();
+        }
+        if (state.mode === "grid") {
+          drawColumnHandles(state.A);
+        }
+      }
+
+      updateUi();
+    }
+
+    function updateUi() {
+      syncControls();
+      renderModeGuide();
+      updateStatus();
+      updateReadout();
+    }
+
+    function syncControls() {
+      sliders.a.value = String(state.A.a);
+      sliders.b.value = String(state.A.b);
+      sliders.c.value = String(state.A.c);
+      sliders.d.value = String(state.A.d);
+      sliders.x.value = String(state.input.x);
+      sliders.y.value = String(state.input.y);
+      values.a.textContent = fmt(state.A.a);
+      values.b.textContent = fmt(state.A.b);
+      values.c.textContent = fmt(state.A.c);
+      values.d.textContent = fmt(state.A.d);
+      values.x.textContent = fmt(state.input.x);
+      values.y.textContent = fmt(state.input.y);
+      bPresetSelect.value = state.bPreset;
+
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === state.mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus() {
+      const determinant = det(state.A);
+      const absDet = Math.abs(determinant);
+      if (absDet < 0.04) {
+        statusTitle.textContent = "当前 A 会把二维平面压扁";
+        statusDetail.textContent = "两列几乎共线或有一列接近零，许多输入会落到同一条线附近。";
+      } else if (determinant > 0) {
+        statusTitle.textContent = "当前 A 保持方向感";
+        statusDetail.textContent = "单位方格被拉伸、旋转或剪切，但逆时针顺序仍保持为逆时针。";
+      } else {
+        statusTitle.textContent = "当前 A 发生了一次翻转";
+        statusDetail.textContent = "单位方格的方向感被镜像，逆时针顺序变成顺时针。";
+      }
+      detDetail.textContent = `det(A) = ${fmt(determinant)}，面积缩放约为 ${fmt(absDet)} 倍。`;
+    }
+
+    function matrixLines(name, M) {
+      return [
+        `${name} = [[${fmt(M.a)}, ${fmt(M.b)}],`,
+        `     [${fmt(M.c)}, ${fmt(M.d)}]]`
+      ];
+    }
+
+    function updateReadout() {
+      const A = state.A;
+      const B = bPresets[state.bPreset];
+      const AB = matMul(A, B);
+      const v = state.input;
+      const Av = matVec(A, v);
+      const Bv = matVec(B, v);
+      const ABv = matVec(AB, v);
+      const AofBv = matVec(A, Bv);
+      const xPart = scaleVector(v.x, col1(A));
+      const yPart = scaleVector(v.y, col2(A));
+
+      const lines = [
+        ...matrixLines("A", A),
+        `T(e1) = [${fmt(A.a)}, ${fmt(A.c)}]`,
+        `T(e2) = [${fmt(A.b)}, ${fmt(A.d)}]`,
+        `v = [${fmt(v.x)}, ${fmt(v.y)}]`,
+        `x*T(e1) = [${fmt(xPart.x)}, ${fmt(xPart.y)}]`,
+        `y*T(e2) = [${fmt(yPart.x)}, ${fmt(yPart.y)}]`,
+        `Av = [${fmt(Av.x)}, ${fmt(Av.y)}]`
+      ];
+
+      if (state.mode === "composition") {
+        lines.push(
+          "",
+          ...matrixLines("B", B),
+          ...matrixLines("AB", AB),
+          `Bv = [${fmt(Bv.x)}, ${fmt(Bv.y)}]`,
+          `A(Bv) = [${fmt(AofBv.x)}, ${fmt(AofBv.y)}]`,
+          `(AB)v = [${fmt(ABv.x)}, ${fmt(ABv.y)}]`
+        );
+      }
+
+      readout.innerHTML = lines.join("<br>");
+    }
+
+    function setA(next) {
+      state.A = { ...next };
+      draw();
+    }
+
+    function activateMode(mode) {
+      state.mode = mode;
+      draw();
+    }
+
+    function bindSlider(name, update) {
+      ["input", "change"].forEach((eventName) => {
+        sliders[name].addEventListener(eventName, () => {
+          update(Number(sliders[name].value));
+          draw();
+        });
+      });
+    }
+
+    bindSlider("a", (value) => {
+      state.A.a = value;
+    });
+
+    bindSlider("b", (value) => {
+      state.A.b = value;
+    });
+
+    bindSlider("c", (value) => {
+      state.A.c = value;
+    });
+
+    bindSlider("d", (value) => {
+      state.A.d = value;
+    });
+
+    bindSlider("x", (value) => {
+      state.input.x = value;
+    });
+
+    bindSlider("y", (value) => {
+      state.input.y = value;
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setA(presets[button.dataset.preset]);
+      });
+    });
+
+    bPresetSelect.addEventListener("change", () => {
+      state.bPreset = bPresetSelect.value;
+      draw();
+    });
+
+    function nearestDragTarget(point) {
+      const candidates = [
+        { name: "input", distance: distance(point, toScreen(state.input)) }
+      ];
+
+      if (state.mode !== "composition") {
+        candidates.push(
+          { name: "col1", distance: distance(point, toScreen(col1(state.A))) },
+          { name: "col2", distance: distance(point, toScreen(col2(state.A))) }
+        );
+      }
+
+      candidates.sort((left, right) => left.distance - right.distance);
+      return candidates[0].distance < 22 ? candidates[0].name : null;
+    }
+
+    function distance(p, q) {
+      return Math.hypot(p.x - q.x, p.y - q.y);
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const target = nearestDragTarget(pointerPoint(event));
+      if (target) {
+        state.dragTarget = target;
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.dragTarget) {
+        return;
+      }
+
+      const world = toWorld(pointerPoint(event));
+      const limit = state.dragTarget === "input" ? 4 : 3;
+      const next = {
+        x: clamp(world.x, -limit, limit),
+        y: clamp(world.y, -limit, limit)
+      };
+
+      if (state.dragTarget === "col1") {
+        state.A.a = next.x;
+        state.A.c = next.y;
+      } else if (state.dragTarget === "col2") {
+        state.A.b = next.x;
+        state.A.d = next.y;
+      } else {
+        state.input.x = next.x;
+        state.input.y = next.y;
+      }
+
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      state.dragTarget = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      state.dragTarget = null;
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>
