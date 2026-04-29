@@ -1,0 +1,1401 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>03. 线性方程组与解空间</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5c667a;
+      --soft: #eef2f7;
+      --grid: #d8deea;
+      --axis: #6f7b91;
+      --border: #d8deea;
+      --code: #243047;
+      --blue: #2563eb;
+      --red: #e11d48;
+      --green: #059669;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --cyan: #0891b2;
+      --wash-green: rgba(5, 150, 105, 0.12);
+      --wash-amber: rgba(217, 119, 6, 0.14);
+      --wash-violet: rgba(124, 58, 237, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    header {
+      padding: 8px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    nav a {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, 0.05);
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 17px;
+    }
+
+    .core-question {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+    }
+
+    .core-question strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1e3a8a;
+      font-size: 15px;
+    }
+
+    .core-question p {
+      margin: 0;
+      color: #293449;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .learning-path {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learning-path li {
+      padding: 12px 14px;
+      background: var(--soft);
+      border-radius: 8px;
+      color: #293449;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0 0;
+      padding: 0 8px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    .mode-tab {
+      position: relative;
+      margin: 0 2px -1px 0;
+      padding: 10px 13px;
+      border: 1px solid transparent;
+      border-bottom-color: #bfdbfe;
+      border-radius: 8px 8px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      border-color: #2563eb;
+      border-bottom-color: #f8faff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .focus-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #bfdbfe;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8faff;
+    }
+
+    .focus-panel h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .focus-panel p {
+      margin: 0;
+    }
+
+    .focus-task {
+      padding-left: 12px;
+      border-left: 3px solid #2563eb;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .canvas-wrap,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: calc(100% - 32px);
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 16px;
+    }
+
+    .control-section + .control-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .controls h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      min-height: 28px;
+      accent-color: #2563eb;
+    }
+
+    button {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f5fa;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .status-card,
+    .readout,
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-card {
+      font-family: inherit;
+    }
+
+    .status-card p {
+      margin: 0;
+    }
+
+    .status-card p + p {
+      margin-top: 6px;
+    }
+
+    .status-title {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mini-note,
+    .hint {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #eef2f7;
+      border-radius: 5px;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .concept {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .concept h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      margin: 12px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    details {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .exercise-block {
+      margin-top: 16px;
+    }
+
+    .exercise-block h3 {
+      margin-top: 0;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-left: 4px solid var(--violet);
+      background: #f5f3ff;
+      border-radius: 8px;
+      color: #35245f;
+    }
+
+    .callout p {
+      color: #4c3b75;
+    }
+
+    .source-list a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .concept-grid,
+      .learning-path,
+      .focus-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .canvas-wrap {
+        min-height: 520px;
+      }
+
+      canvas {
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .legend {
+        position: static;
+        border-width: 1px 0 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>03. 线性方程组与解空间</h1>
+      <p class="lead">本页把方程组从“代数题”重新看成“约束的交集”：每个线性方程筛出一条直线，方程组要找同时满足所有约束的点。你会看到唯一解、无解、无穷多解，以及消元为什么没有改变真正的问题。</p>
+      <nav aria-label="本页导航">
+        <a href="#goal">学习路线</a>
+        <a href="#interactive">互动演示</a>
+        <a href="#concepts">知识讲解</a>
+        <a href="#exercises">少量练习</a>
+        <a href="#answers">答案要点</a>
+        <a href="#research-notes">调研依据</a>
+      </nav>
+    </header>
+
+    <section id="goal">
+      <h2>本章要解决的问题</h2>
+      <div class="core-question">
+        <strong>核心问题</strong>
+        <p>线性方程组不是在“凑数字”，而是在找哪些向量同时满足一组线性约束。</p>
+      </div>
+      <ol class="learning-path">
+        <li><strong>一个方程：</strong><code>a*x + b*y = r</code> 在二维平面里通常是一条直线。</li>
+        <li><strong>多个方程：</strong>方程组的解是所有约束线的交集。</li>
+        <li><strong>三种结果：</strong>两条线相交是唯一解；平行分离是无解；完全重合是无穷多解。</li>
+        <li><strong>矩阵写法：</strong><code>Ax=b</code> 把多条约束压缩成一个统一问题。</li>
+        <li><strong>消元：</strong>行变换用等价约束替换原约束，让交集更容易看出来。</li>
+        <li><strong>解空间：</strong>齐次方程 <code>Ax=0</code> 的解是子空间；非齐次方程若有解，解集是一个平移后的子空间。</li>
+      </ol>
+    </section>
+
+    <section id="interactive">
+      <h2>互动演示：方程组就是约束的交集</h2>
+      <p>拖动两条直线上的彩色控制点或调整右侧滑块。蓝线表示第一行方程，红线表示第二行方程；交点、重合或平行分离就是方程组的解结构。</p>
+
+      <div class="mode-tabs" aria-label="交互观察步骤">
+        <a class="mode-tab active" href="#mode-lines" aria-current="page" data-mode="lines">1 约束线</a>
+        <a class="mode-tab" href="#mode-cases" data-mode="cases">2 三种解</a>
+        <a class="mode-tab" href="#mode-matrix" data-mode="matrix">3 Ax=b</a>
+        <a class="mode-tab" href="#mode-elimination" data-mode="elimination">4 消元</a>
+      </div>
+
+      <div class="focus-panel" id="modeGuide" aria-live="polite"></div>
+
+      <div class="workspace">
+        <div class="canvas-wrap" aria-label="二维线性方程组交互画布">
+          <canvas id="scene" width="820" height="620"></canvas>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--grid);"></i>坐标网格</span>
+            <span><i class="swatch" style="background: var(--blue);"></i>方程 1</span>
+            <span><i class="swatch" style="background: var(--red);"></i>方程 2</span>
+            <span><i class="swatch" style="background: var(--green);"></i>解/等价约束</span>
+            <span><i class="swatch" style="background: var(--amber);"></i>b 或目标</span>
+            <span><i class="swatch" style="background: var(--violet);"></i>齐次方向</span>
+          </div>
+        </div>
+
+        <aside class="controls">
+          <div class="control-section">
+            <h3>当前结论</h3>
+            <div class="status-card">
+              <p class="status-title" id="statusTitle"></p>
+              <p id="statusDetail"></p>
+              <p id="detDetail"></p>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>方程 1</h3>
+            <label>
+              <span>a1 = <strong class="value" id="a1Value">1.00</strong></span>
+              <input id="a1Slider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+            <label>
+              <span>b1 = <strong class="value" id="b1Value">1.00</strong></span>
+              <input id="b1Slider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+            <label>
+              <span>r1 = <strong class="value" id="r1Value">3.00</strong></span>
+              <input id="r1Slider" type="range" min="-6" max="6" step="0.05" value="3">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>方程 2</h3>
+            <label>
+              <span>a2 = <strong class="value" id="a2Value">1.00</strong></span>
+              <input id="a2Slider" type="range" min="-4" max="4" step="0.05" value="1">
+            </label>
+            <label>
+              <span>b2 = <strong class="value" id="b2Value">-1.00</strong></span>
+              <input id="b2Slider" type="range" min="-4" max="4" step="0.05" value="-1">
+            </label>
+            <label>
+              <span>r2 = <strong class="value" id="r2Value">1.00</strong></span>
+              <input id="r2Slider" type="range" min="-6" max="6" step="0.05" value="1">
+            </label>
+          </div>
+
+          <div class="control-section">
+            <h3>典型情况</h3>
+            <div class="preset-grid">
+              <button type="button" data-preset="unique">唯一解</button>
+              <button type="button" data-preset="parallel">无解</button>
+              <button type="button" data-preset="same">无穷多解</button>
+              <button type="button" data-preset="axis">横竖交点</button>
+              <button type="button" data-preset="oneLine">单约束线</button>
+              <button type="button" data-preset="contradiction">矛盾行</button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h3>当前计算</h3>
+            <div class="readout" id="readout"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>知识讲解</h2>
+      <div class="concept-grid">
+        <article class="concept">
+          <h3>1. 一个方程是一条约束</h3>
+          <p><code>a*x + b*y = r</code> 不是让你先想算法，而是在平面中筛选点：所有满足它的 <code>[x,y]</code> 形成一条直线。</p>
+          <pre class="formula">2x + y = 5</pre>
+          <p>这句话的意思是：只要一个点的横坐标和纵坐标满足这个关系，它就在这条约束线上。</p>
+        </article>
+
+        <article class="concept">
+          <h3>2. 方程组求交集</h3>
+          <p>两个方程就是两个筛子。一个点必须同时通过两个筛子，才是方程组的解。</p>
+          <pre>a1*x + b1*y = r1
+a2*x + b2*y = r2</pre>
+          <p>所以二维里最自然的几何图像就是两条线的交点、平行分离或完全重合。</p>
+        </article>
+
+        <article class="concept">
+          <h3>3. 矩阵形式 Ax=b</h3>
+          <p>把未知量放进向量，把系数排成矩阵，就得到统一写法：</p>
+          <pre>A = [[a1, b1],
+     [a2, b2]]
+x = [x, y]
+b = [r1, r2]
+
+Ax = b</pre>
+          <p>这不是换符号而已。它让我们能用矩阵的列空间、秩、零空间来理解所有方程组。</p>
+        </article>
+
+        <article class="concept">
+          <h3>4. 三种解对应三种几何</h3>
+          <ul>
+            <li><strong>唯一解：</strong>两条线相交于一个点，矩阵有两个独立方向。</li>
+            <li><strong>无解：</strong>约束互相矛盾，例如两条平行线要求同一个点在两个不同位置。</li>
+            <li><strong>无穷多解：</strong>约束重复或不够多，留下整条线甚至整个平面。</li>
+          </ul>
+        </article>
+
+        <article class="concept">
+          <h3>5. 高斯消元为什么有效</h3>
+          <p>消元不是改变答案，而是把约束换成更容易读的等价约束。典型行操作包括交换两行、某行乘非零数、用一行加减另一行的倍数。</p>
+          <pre>R2 <- R2 - m*R1</pre>
+          <p>如果一个点同时满足原来的两行，它也满足替换后的行；反过来结合保留的那一行，也能恢复原约束。因此解集不变。</p>
+        </article>
+
+        <article class="concept">
+          <h3>6. 解空间与零空间</h3>
+          <p>齐次方程 <code>Ax=0</code> 的解集一定包含零向量，并且对加法和数乘封闭，所以它是一个子空间，也叫 null space。</p>
+          <p>非齐次方程 <code>Ax=b</code> 如果有一个特解 <code>xp</code>，全部解可以写成：</p>
+          <pre>x = xp + z, 其中 Az = 0</pre>
+          <p>所以非齐次解集通常不是穿过原点的子空间，而是零空间平移后的集合。</p>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top: 16px;">
+        <p>本章最重要的一句话：解方程组就是找约束的共同部分；消元只是把同一个共同部分改写得更容易看。</p>
+      </div>
+    </section>
+
+    <section id="exercises">
+      <h2>少量练习</h2>
+
+      <div class="exercise-block">
+        <h3>概念题</h3>
+        <ol>
+          <li>为什么一个二维线性方程通常对应一条直线，而两个方程的解对应两条线的交集？</li>
+          <li>为什么 <code>Ax=0</code> 的解集是子空间，而 <code>Ax=b</code> 的解集不一定是子空间？</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>手算题</h3>
+        <ol>
+          <li>解方程组：<code>x + y = 3</code>，<code>x - y = 1</code>。</li>
+          <li>判断方程组 <code>x + 2y = 4</code>，<code>2x + 4y = 9</code> 有无解，并说明几何原因。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>互动实验题</h3>
+        <ol>
+          <li>依次点击“唯一解”“无解”“无穷多解”，观察右侧的 <code>det(A)</code> 和画布里的线关系。</li>
+          <li>切到“4 消元”，观察绿色虚线如何替代第二个方程，但不改变交点。</li>
+        </ol>
+      </div>
+
+      <div class="exercise-block">
+        <h3>思考题</h3>
+        <ol>
+          <li>如果消元后出现 <code>0 = 5</code>，为什么这说明原方程组无解？</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="answers">
+      <h2>参考答案要点</h2>
+      <details>
+        <summary>展开精简答案</summary>
+        <ol>
+          <li>一个方程筛出所有满足同一线性关系的点；两个方程同时成立，就是取两条筛选结果的共同部分。</li>
+          <li><code>Ax=0</code> 的解对相加和数乘封闭；<code>Ax=b</code> 若 <code>b != 0</code>，通常不包含零向量，所以通常不是子空间。</li>
+          <li>相加得 <code>2x=4</code>，所以 <code>x=2</code>；代回得 <code>y=1</code>。</li>
+          <li>无解。第二个左边是第一个左边的 2 倍，但右边不是 2 倍；几何上是两条平行但不同的直线。</li>
+          <li><code>det(A) != 0</code> 时两行方向不平行，通常唯一交点；<code>det(A)=0</code> 时可能平行分离或重合。</li>
+          <li><code>0=5</code> 没有任何 <code>x,y</code> 能满足；它是矛盾约束，因此原系统无解。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="research-notes">
+      <h2>教学组织依据</h2>
+      <p>本页采用“约束线 -> 交集 -> 矩阵形式 -> 消元 -> 解空间”的顺序，先让读者知道方程组在找什么，再解释算法为什么有效。</p>
+      <ul class="source-list">
+        <li>概念校准：消元和增广矩阵如何把线性系统变成等价系统，参考 <a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/resources/elimination-with-matrices/">MIT OCW: Elimination with Matrices</a>。</li>
+        <li>直觉线索：把 <code>Ax=b</code> 看成“找哪个输入落到目标向量”，并连接 column space 与 null space，参考 <a href="https://www.3blue1brown.com/lessons/inverse-matrices">3Blue1Brown: Inverse matrices, column space, and null space</a>。</li>
+        <li>练习组织：从方程组翻译到矩阵方程 <code>Ax=b</code>，参考 <a href="https://www.khanacademy.org/v/matrix-equations-systems">Khan Academy: Representing linear systems with matrix equations</a>。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const sliders = {
+      a1: document.getElementById("a1Slider"),
+      b1: document.getElementById("b1Slider"),
+      r1: document.getElementById("r1Slider"),
+      a2: document.getElementById("a2Slider"),
+      b2: document.getElementById("b2Slider"),
+      r2: document.getElementById("r2Slider")
+    };
+
+    const values = {
+      a1: document.getElementById("a1Value"),
+      b1: document.getElementById("b1Value"),
+      r1: document.getElementById("r1Value"),
+      a2: document.getElementById("a2Value"),
+      b2: document.getElementById("b2Value"),
+      r2: document.getElementById("r2Value")
+    };
+
+    const readout = document.getElementById("readout");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusDetail = document.getElementById("statusDetail");
+    const detDetail = document.getElementById("detDetail");
+    const modeGuide = document.getElementById("modeGuide");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+    const presetButtons = document.querySelectorAll("[data-preset]");
+
+    const EPS = 0.04;
+    const state = {
+      system: { a1: 1, b1: 1, r1: 3, a2: 1, b2: -1, r2: 1 },
+      mode: "lines",
+      dragTarget: null,
+      scale: 54
+    };
+
+    const presets = {
+      unique: { a1: 1, b1: 1, r1: 3, a2: 1, b2: -1, r2: 1 },
+      parallel: { a1: 1, b1: 2, r1: 4, a2: 2, b2: 4, r2: 9 },
+      same: { a1: 1, b1: 2, r1: 4, a2: 2, b2: 4, r2: 8 },
+      axis: { a1: 1, b1: 0, r1: 2, a2: 0, b2: 1, r2: 1 },
+      oneLine: { a1: 1, b1: -1, r1: 1, a2: 0, b2: 0, r2: 0 },
+      contradiction: { a1: 1, b1: 1, r1: 2, a2: 0, b2: 0, r2: 1 }
+    };
+
+    const modeGuides = {
+      lines: {
+        title: "第 1 步：一个方程是一条约束线",
+        body: "蓝线和红线分别表示两个线性方程。线上任意一点都满足对应方程，线外的点不满足。",
+        task: "任务：拖动蓝线上的控制点，观察 r1 改变时整条约束线如何平移。"
+      },
+      cases: {
+        title: "第 2 步：三种解就是三种交集",
+        body: "相交得到一个点，平行分离得到空集，完全重合得到整条线。右侧预设会快速切换这三种情况。",
+        task: "任务：点击“唯一解”“无解”“无穷多解”，用一句话解释每种图像。"
+      },
+      matrix: {
+        title: "第 3 步：Ax=b 是同一个问题的矩阵写法",
+        body: "A 的两行给出两个约束，右侧向量 b 给出两个目标值。解向量 x 必须同时让两行点积达到对应目标。",
+        task: "任务：看右侧读数，把两行方程翻译回矩阵 A、未知向量 x 和右侧 b。"
+      },
+      elimination: {
+        title: "第 4 步：消元用等价约束替换原约束",
+        body: "绿色虚线是用 R2 <- R2 - m*R1 得到的新第二行。它和蓝线的交集，与原来蓝线和红线的交集相同。",
+        task: "任务：在唯一解预设下切到本页，确认绿色虚线仍穿过同一个解点。"
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function origin() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function toScreen(vector) {
+      const o = origin();
+      return {
+        x: o.x + vector.x * state.scale,
+        y: o.y - vector.y * state.scale
+      };
+    }
+
+    function toWorld(point) {
+      const o = origin();
+      return {
+        x: (point.x - o.x) / state.scale,
+        y: (o.y - point.y) / state.scale
+      };
+    }
+
+    function pointerPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function equation1() {
+      const s = state.system;
+      return { a: s.a1, b: s.b1, r: s.r1 };
+    }
+
+    function equation2() {
+      const s = state.system;
+      return { a: s.a2, b: s.b2, r: s.r2 };
+    }
+
+    function detSystem() {
+      const s = state.system;
+      return s.a1 * s.b2 - s.b1 * s.a2;
+    }
+
+    function coeffNorm(eq) {
+      return Math.hypot(eq.a, eq.b);
+    }
+
+    function isZeroEquation(eq) {
+      return coeffNorm(eq) < EPS;
+    }
+
+    function isContradiction(eq) {
+      return isZeroEquation(eq) && Math.abs(eq.r) >= EPS;
+    }
+
+    function classifySystem() {
+      const e1 = equation1();
+      const e2 = equation2();
+      if (isContradiction(e1) || isContradiction(e2)) {
+        return { kind: "none", title: "无解：存在矛盾行", detail: "某一行等价于 0 = 非零数，没有任何点能满足。" };
+      }
+
+      const active = [e1, e2].filter((eq) => !isZeroEquation(eq));
+      if (active.length === 0) {
+        return { kind: "plane", title: "无穷多解：整个平面", detail: "两行都等价于 0 = 0，没有留下实际约束。" };
+      }
+
+      if (active.length === 1) {
+        return { kind: "line", title: "无穷多解：一条直线", detail: "只有一个有效约束，所有在线上的点都是解。", line: active[0] };
+      }
+
+      const determinant = detSystem();
+      if (Math.abs(determinant) >= EPS) {
+        const s = state.system;
+        return {
+          kind: "unique",
+          title: "唯一解：两条线相交",
+          detail: "两行给出独立约束，所以交集只有一个点。",
+          point: {
+            x: (s.r1 * s.b2 - s.b1 * s.r2) / determinant,
+            y: (s.a1 * s.r2 - s.r1 * s.a2) / determinant
+          }
+        };
+      }
+
+      const consistent = Math.abs(e1.a * e2.r - e2.a * e1.r) < EPS
+        && Math.abs(e1.b * e2.r - e2.b * e1.r) < EPS;
+      if (consistent) {
+        return { kind: "line", title: "无穷多解：两条线重合", detail: "第二个约束只是第一个约束的倍数，没有增加新限制。", line: active[0] };
+      }
+
+      return { kind: "none", title: "无解：两条线平行分离", detail: "两行左边方向相同，但右边目标不一致。" };
+    }
+
+    function eliminationStep() {
+      const e1 = equation1();
+      const e2 = equation2();
+      if (isZeroEquation(e1)) {
+        return { possible: false, text: "第一行没有可用主元；实际消元会先交换行或跳过这一行。" };
+      }
+
+      if (Math.abs(e1.a) >= EPS) {
+        const m = e2.a / e1.a;
+        return {
+          possible: true,
+          op: `R2 <- R2 - (${fmt(m)}) R1`,
+          pivot: "x",
+          row: {
+            a: e2.a - m * e1.a,
+            b: e2.b - m * e1.b,
+            r: e2.r - m * e1.r
+          }
+        };
+      }
+
+      const m = e2.b / e1.b;
+      return {
+        possible: true,
+        op: `R2 <- R2 - (${fmt(m)}) R1`,
+        pivot: "y",
+        row: {
+          a: e2.a - m * e1.a,
+          b: e2.b - m * e1.b,
+          r: e2.r - m * e1.r
+        }
+      };
+    }
+
+    function linePoints(eq) {
+      if (isZeroEquation(eq)) {
+        return null;
+      }
+
+      const limit = 8;
+      if (Math.abs(eq.b) >= Math.abs(eq.a)) {
+        const x1 = -limit;
+        const x2 = limit;
+        return [
+          { x: x1, y: (eq.r - eq.a * x1) / eq.b },
+          { x: x2, y: (eq.r - eq.a * x2) / eq.b }
+        ];
+      }
+
+      const y1 = -limit;
+      const y2 = limit;
+      return [
+        { x: (eq.r - eq.b * y1) / eq.a, y: y1 },
+        { x: (eq.r - eq.b * y2) / eq.a, y: y2 }
+      ];
+    }
+
+    function pointOnLine(eq) {
+      if (isZeroEquation(eq)) {
+        return { x: 0, y: 0 };
+      }
+
+      const denom = eq.a * eq.a + eq.b * eq.b;
+      return {
+        x: eq.a * eq.r / denom,
+        y: eq.b * eq.r / denom
+      };
+    }
+
+    function directionForLine(eq) {
+      return { x: -eq.b, y: eq.a };
+    }
+
+    function drawBaseGrid() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+      const o = origin();
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = getCss("--grid");
+
+      for (let x = o.x % state.scale; x <= width; x += state.scale) {
+        lineScreen({ x, y: 0 }, { x, y: height });
+      }
+      for (let y = o.y % state.scale; y <= height; y += state.scale) {
+        lineScreen({ x: 0, y }, { x: width, y });
+      }
+
+      ctx.strokeStyle = getCss("--axis");
+      ctx.lineWidth = 1.5;
+      lineScreen({ x: 0, y: o.y }, { x: width, y: o.y });
+      lineScreen({ x: o.x, y: 0 }, { x: o.x, y: height });
+
+      ctx.fillStyle = getCss("--axis");
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      for (let i = -6; i <= 6; i += 1) {
+        if (i !== 0) {
+          const xPoint = toScreen({ x: i, y: 0 });
+          const yPoint = toScreen({ x: 0, y: i });
+          ctx.fillText(String(i), xPoint.x - 4, o.y + 16);
+          ctx.fillText(String(i), o.x + 8, yPoint.y + 4);
+        }
+      }
+    }
+
+    function drawLine(eq, color, label, width = 3, dashed = false) {
+      const points = linePoints(eq);
+      if (!points) {
+        return;
+      }
+
+      const start = toScreen(points[0]);
+      const end = toScreen(points[1]);
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([8, 7]);
+      }
+      lineScreen(start, end);
+      ctx.setLineDash([]);
+      const labelPoint = toScreen(pointOnLine(eq));
+      drawLabel(label, labelPoint.x + 10, labelPoint.y - 10, color);
+      ctx.restore();
+    }
+
+    function drawLineHandle(eq, color, name) {
+      if (isZeroEquation(eq)) {
+        return;
+      }
+
+      const p = toScreen(pointOnLine(eq));
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      drawLabel(name, p.x + 10, p.y + 22, color);
+      ctx.restore();
+    }
+
+    function drawSolution(classification) {
+      if (classification.kind === "unique") {
+        const p = toScreen(classification.point);
+        ctx.save();
+        ctx.fillStyle = getCss("--green");
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        drawLabel(`解 (${fmt(classification.point.x)}, ${fmt(classification.point.y)})`, p.x + 12, p.y - 10, getCss("--green"));
+        ctx.restore();
+      }
+
+      if (classification.kind === "line" && classification.line) {
+        const p0 = pointOnLine(classification.line);
+        const dir = directionForLine(classification.line);
+        const length = norm(dir);
+        if (length >= EPS) {
+          const unit = { x: dir.x / length, y: dir.y / length };
+          drawVector(scaleVector(1.4, unit), getCss("--violet"), "齐次方向", 3, p0, true);
+        }
+      }
+
+      if (classification.kind === "plane") {
+        const width = canvas.getBoundingClientRect().width;
+        const height = canvas.getBoundingClientRect().height;
+        ctx.save();
+        ctx.fillStyle = getCss("--wash-green");
+        ctx.fillRect(0, 0, width, height);
+        drawLabel("所有点都是解", 22, 34, getCss("--green"));
+        ctx.restore();
+      }
+    }
+
+    function drawMatrixView(classification) {
+      const s = state.system;
+      const colX = { x: s.a1, y: s.a2 };
+      const colY = { x: s.b1, y: s.b2 };
+      const rhs = { x: s.r1, y: s.r2 };
+      drawVector(colX, getCss("--blue"), "A 的第 1 列", 3);
+      drawVector(colY, getCss("--red"), "A 的第 2 列", 3);
+      drawVector(rhs, getCss("--amber"), "b", 4);
+
+      if (classification.kind === "unique") {
+        const xPart = scaleVector(classification.point.x, colX);
+        const yPart = scaleVector(classification.point.y, colY);
+        drawVector(xPart, "rgba(37, 99, 235, 0.55)", "x*col1", 2);
+        drawVector(yPart, "rgba(225, 29, 72, 0.55)", "y*col2", 2, xPart, true);
+      } else if (classification.kind === "line" && classification.line) {
+        const dir = directionForLine({ a: colX.x, b: colY.x, r: rhs.x });
+        if (norm(dir) >= EPS) {
+          drawVector(scaleVector(1.4 / norm(dir), dir), getCss("--violet"), "可变方向", 3, { x: 0, y: 0 }, true);
+        }
+      }
+    }
+
+    function drawEliminationView(classification) {
+      const step = eliminationStep();
+      if (step.possible) {
+        drawLine(step.row, getCss("--green"), "新方程 2", 3, true);
+      }
+      drawSolution(classification);
+    }
+
+    function drawVector(vector, color, label, width = 3, startVector = { x: 0, y: 0 }, dashed = false) {
+      const start = toScreen(startVector);
+      const end = toScreen(add(startVector, vector));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const head = 12;
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) {
+        ctx.setLineDash([6, 6]);
+      }
+
+      if (length < 4) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        drawLabel(label, end.x + 8, end.y - 8, color);
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      drawLabel(label, end.x + 8, end.y - 8, color);
+      ctx.restore();
+    }
+
+    function drawLabel(text, x, y, color) {
+      ctx.save();
+      ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+      const metrics = ctx.measureText(text);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+      ctx.fillRect(x - 3, y - 14, metrics.width + 6, 18);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function draw() {
+      const classification = classifySystem();
+      drawBaseGrid();
+
+      if (state.mode === "matrix") {
+        drawMatrixView(classification);
+      } else {
+        drawLine(equation1(), getCss("--blue"), "方程 1");
+        drawLine(equation2(), getCss("--red"), "方程 2");
+        drawLineHandle(equation1(), getCss("--blue"), "拖动平移");
+        drawLineHandle(equation2(), getCss("--red"), "拖动平移");
+        if (state.mode === "elimination") {
+          drawEliminationView(classification);
+        } else {
+          drawSolution(classification);
+        }
+      }
+
+      updateUi(classification);
+    }
+
+    function updateUi(classification) {
+      syncControls();
+      renderModeGuide();
+      updateStatus(classification);
+      updateReadout(classification);
+    }
+
+    function syncControls() {
+      Object.keys(sliders).forEach((key) => {
+        sliders[key].value = String(state.system[key]);
+        values[key].textContent = fmt(state.system[key]);
+      });
+
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === state.mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderModeGuide() {
+      const guide = modeGuides[state.mode];
+      modeGuide.innerHTML = `
+        <div>
+          <h3>${guide.title}</h3>
+          <p>${guide.body}</p>
+        </div>
+        <div class="focus-task">
+          <p>${guide.task}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus(classification) {
+      const determinant = detSystem();
+      statusTitle.textContent = classification.title;
+      statusDetail.textContent = classification.detail;
+      detDetail.textContent = `det(A) = ${fmt(determinant)}。${Math.abs(determinant) < EPS ? "两行方向不独立，需要继续看右侧是否一致。" : "两行方向独立，所以有唯一交点。"}`;
+    }
+
+    function updateReadout(classification) {
+      const s = state.system;
+      const lines = [
+        `${fmt(s.a1)}x + ${fmt(s.b1)}y = ${fmt(s.r1)}`,
+        `${fmt(s.a2)}x + ${fmt(s.b2)}y = ${fmt(s.r2)}`,
+        "",
+        `A = [[${fmt(s.a1)}, ${fmt(s.b1)}],`,
+        `     [${fmt(s.a2)}, ${fmt(s.b2)}]]`,
+        `b = [${fmt(s.r1)}, ${fmt(s.r2)}]`,
+        `det(A) = ${fmt(detSystem())}`
+      ];
+
+      if (classification.kind === "unique") {
+        lines.push(`解 x = [${fmt(classification.point.x)}, ${fmt(classification.point.y)}]`);
+      } else if (classification.kind === "line" && classification.line) {
+        const p0 = pointOnLine(classification.line);
+        const dir = directionForLine(classification.line);
+        lines.push(`一个特解 xp = [${fmt(p0.x)}, ${fmt(p0.y)}]`);
+        lines.push(`齐次方向 z = t*[${fmt(dir.x)}, ${fmt(dir.y)}]`);
+      } else if (classification.kind === "plane") {
+        lines.push("解集 = 整个 R^2");
+      } else {
+        lines.push("解集 = 空集");
+      }
+
+      if (state.mode === "elimination") {
+        const step = eliminationStep();
+        lines.push("");
+        if (step.possible) {
+          lines.push(step.op);
+          lines.push(`新 R2 = [${fmt(step.row.a)}, ${fmt(step.row.b)} | ${fmt(step.row.r)}]`);
+          if (isContradiction(step.row)) {
+            lines.push("出现 0 = 非零数，系统无解。");
+          }
+        } else {
+          lines.push(step.text);
+        }
+      }
+
+      readout.innerHTML = lines.join("<br>");
+    }
+
+    function activateMode(mode) {
+      state.mode = mode;
+      draw();
+    }
+
+    function bindSlider(name) {
+      ["input", "change"].forEach((eventName) => {
+        sliders[name].addEventListener(eventName, () => {
+          state.system[name] = Number(sliders[name].value);
+          draw();
+        });
+      });
+    }
+
+    Object.keys(sliders).forEach(bindSlider);
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("pointerdown", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("click", () => {
+        activateMode(button.dataset.mode);
+      });
+
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateMode(button.dataset.mode);
+        }
+      });
+    });
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.system = { ...presets[button.dataset.preset] };
+        draw();
+      });
+    });
+
+    function nearestDragTarget(point) {
+      if (state.mode === "matrix") {
+        return null;
+      }
+
+      const candidates = [];
+      const p1 = isZeroEquation(equation1()) ? null : toScreen(pointOnLine(equation1()));
+      const p2 = isZeroEquation(equation2()) ? null : toScreen(pointOnLine(equation2()));
+      if (p1) {
+        candidates.push({ name: "r1", distance: distance(point, p1) });
+      }
+      if (p2) {
+        candidates.push({ name: "r2", distance: distance(point, p2) });
+      }
+
+      candidates.sort((left, right) => left.distance - right.distance);
+      return candidates[0] && candidates[0].distance < 24 ? candidates[0].name : null;
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const target = nearestDragTarget(pointerPoint(event));
+      if (target) {
+        state.dragTarget = target;
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.dragTarget) {
+        return;
+      }
+
+      const world = toWorld(pointerPoint(event));
+      const eq = state.dragTarget === "r1" ? equation1() : equation2();
+      const nextR = eq.a * world.x + eq.b * world.y;
+      state.system[state.dragTarget] = clamp(nextR, -6, 6);
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      state.dragTarget = null;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      state.dragTarget = null;
+    });
+
+    function add(u, v) {
+      return { x: u.x + v.x, y: u.y + v.y };
+    }
+
+    function scaleVector(k, v) {
+      return { x: k * v.x, y: k * v.y };
+    }
+
+    function norm(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function distance(p, q) {
+      return Math.hypot(p.x - q.x, p.y - q.y);
+    }
+
+    function getCss(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function fmt(value) {
+      const fixed = Number(value).toFixed(2);
+      return fixed === "-0.00" ? "0.00" : fixed;
+    }
+
+    function lineScreen(start, end) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>
